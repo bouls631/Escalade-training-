@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="description" content="Programme d'entraînement escalade niveau 6c : force, technique et suivi de progression.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Escalade Pro">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-180.png">
+    <title>Escalade Pro Training</title>
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --card: #16213e;
+            --card-hover: #1a2745;
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --accent: #e94560;
+            --warning: #ff9800;
+            --info: #2196F3;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --border: #2a2a3a;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            padding-bottom: 100px;
+            line-height: 1.5;
+        }
+        
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        h1 { 
+            color: var(--primary); 
+            font-size: 1.6em; 
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        
+        .subtitle { 
+            color: var(--text-muted); 
+            font-size: 0.9em; 
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        
+        .tab {
+            flex: 1;
+            min-width: 90px;
+            padding: 12px 8px;
+            background: var(--card);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .tab.active { 
+            background: rgba(76, 175, 80, 0.15); 
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-primary { background: rgba(76, 175, 80, 0.2); color: var(--primary); }
+        .badge-warning { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
+        .badge-info { background: rgba(33, 150, 243, 0.2); color: var(--info); }
+        
+        /* Timer Styles */
+        .timer-container {
+            text-align: center;
+            padding: 30px 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        
+        .timer-display {
+            font-size: 5em;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        .timer-display.work { color: var(--primary); }
+        .timer-display.rest { color: var(--warning); }
+        .timer-display.ready { color: var(--info); }
+        
+        .timer-phase {
+            font-size: 1.1em;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            min-height: 24px;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--accent); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-ghost { background: rgba(255,255,255,0.1); color: var(--text); }
+        .btn-small { padding: 8px 14px; font-size: 0.85em; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Exercise Styles */
+        .exercise-detail {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .exercise-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .exercise-params {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+        
+        .param {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .param-value {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .exercise-notes {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            font-size: 0.85em;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        /* Route Logging */
+        .route-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .route-form input, .route-form select {
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9em;
+        }
+        
+        .route-form input:focus, .route-form select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .route-list {
+            margin-top: 15px;
+        }
+        
+        .route-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg);
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid var(--info);
+            transition: transform 0.2s;
+        }
+        
+        .route-item:active { transform: scale(0.98); }
+        .route-item.flash { border-left-color: var(--primary); }
+        .route-item.work { border-left-color: var(--warning); }
+        .route-item.fail { border-left-color: var(--accent); }
+        
+        .route-info h4 { margin-bottom: 4px; font-size: 1em; }
+        .route-meta { 
+            font-size: 0.8em; 
+            color: var(--text-muted);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .route-grade {
+            font-weight: 700;
+            color: var(--info);
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .status-flash { background: rgba(76, 175, 80, 0.2); color: var(--primary); }
+        .status-work { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
+        .status-fail { background: rgba(233, 69, 96, 0.2); color: var(--accent); }
+        
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .metric-card {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        /* Detail Sections */
+        .detail-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .detail-title {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .technique-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .technique-tag {
+            padding: 6px 12px;
+            background: var(--bg);
+            border-radius: 20px;
+            font-size: 0.8em;
+            border: 1px solid var(--border);
+        }
+        
+        .technique-tag.active {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Rest Timer */
+        .rest-timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+            cursor: pointer;
+        }
+        
+        .rest-timer.active {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+        
+        /* Notes */
+        .note-input {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            min-height: 100px;
+            font-family: inherit;
+            resize: vertical;
+            margin-top: 10px;
+        }
+        
+        .note-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* Week Selector */
+        .week-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+            margin-bottom: 15px;
+        }
+        
+        .week-btn {
+            min-width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .week-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .week-btn.completed {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Hidden */
+        .hidden { display: none !important; }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .timer-display { font-size: 4em; }
+            .route-form { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .exercise-params { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧗 Escalade Pro</h1>
+            <p class="subtitle">Programme 6c - Force & Technique</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('mur', this)">🏔️ Mur</button>
+            <button class="tab" onclick="showTab('finger', this)">🖐️ Finger</button>
+            <button class="tab" onclick="showTab('rings', this)">💪 Anneaux</button>
+            <button class="tab" onclick="showTab('analytics', this)">📊 Analyse</button>
+        </div>
+
+        <!-- MUR TAB - DÉTAILLÉ -->
+        <div id="mur" class="tab-content">
+            <!-- Séance Type Selector -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Type de séance</span>
+                    <span class="badge badge-primary" id="murWeekBadge">Semaine 1</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="setMurSession('mardi')" id="btnMardi">
+                        📚 Mardi<br><small>Technique</small>
+                    </button>
+                    <button class="btn btn-ghost" style="flex: 1;" onclick="setMurSession('jeudi')" id="btnJeudi">
+                        ⚡ Jeudi<br><small>Performance</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MARDI - Technique Détaillée -->
+            <div id="mardiDetail">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">📚 Mardi - Technique & Lecture</span>
+                        <span class="badge badge-info">19h-22h</span>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="detail-title">Objectifs spécifiques</div>
+                        <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
+                            • Lire les voies 6c avant de grimper (visualisation)<br>
+                            • Grimper lentement (tempo 2x) pour contrôler le mouvement<br>
+                            • Identifier les points de repos et les clips<br>
+                            • Travailler la précision des pieds (silent feet)
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">Structure détaillée</div>
+                        
+                        <div class="exercise-detail">
+                            <div class="exercise-name">
+                                <span>1. Échauffement progressif</span>
+                                <span class="badge badge-primary">20 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Intensité</span>
+                                    <span class="param-value">50-60%</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Cotation</span>
+                                    <span class="param-value">5+ à 6a</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Focus</span>
+                                    <span class="param-value">Mobilité</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                2 voies en lead ou moulinette. Mouvements fluides, respiration contrôlée. Étirements dynamiques poignets/épaules entre chaque voie.
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--warning);">
+                            <div class="exercise-name">
+                                <span>2. Lecture de voie (Ground Up)</span>
+                                <span class="badge badge-warning">30 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Cotation</span>
+                                    <span class="param-value">6c</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Essais</span>
+                                    <span class="param-value">3-4 voies</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Repos</span>
+                                    <span class="param-value">5 min</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Pour chaque voie : 5 min de lecture au sol (beta, clips, repos), puis grimpe en tête même si tu tombes. Note les crux et les types de prises.
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--info);">
+                            <div class="exercise-name">
+                                <span>3. Grimpe lente (Tempo Training)</span>
+                                <span class="badge badge-info">20 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Cotation</span>
+                                    <span class="param-value">6b</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Vitesse</span>
+                                    <span class="param-value">2x lent</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Voies</span>
+                                    <span class="param-value">2</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Chaque mouvement dure 4-6 secondes. Contrôle total, pas de momentum. Focus sur le placement précis des pieds avant de tirer.
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--primary);">
+                            <div class="exercise-name">
+                                <span>4. Perfection 6a (Flash Clean)</span>
+                                <span class="badge badge-primary">15 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Cotation</span>
+                                    <span class="param-value">6a</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Objectif</span>
+                                    <span class="param-value">Flash parfait</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Critère</span>
+                                    <span class="param-value">Silent feet</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Grimpe sans faire de bruit avec les pieds. Si tu touches une prise avec le pied puis la déplaces, ça compte comme un échec. Recommence.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">Techniques travaillées</div>
+                        <div class="technique-list">
+                            <span class="technique-tag active">Lecture de voie</span>
+                            <span class="technique-tag active">Contrôle du tempo</span>
+                            <span class="technique-tag">Précision pieds</span>
+                            <span class="technique-tag">Gestion du souffle</span>
+                            <span class="technique-tag">Visualisation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JEUDI - Performance Détaillée -->
+            <div id="jeudiDetail" class="hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">⚡ Jeudi - Performance & Flash</span>
+                        <span class="badge badge-warning">19h30-22h</span>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <div class="detail-title">Objectifs spécifiques</div>
+                        <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
+                            • Flasher des 6c (3 essais max par voie)<br>
+                            • Travailler les séquences difficiles en work<br>
+                            • Développer l'endurance de force (enchaînement)<br>
+                            • Tester la force de doigt acquise au fingerboard
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">Structure détaillée</div>
+                        
+                        <div class="exercise-detail">
+                            <div class="exercise-name">
+                                <span>1. Activation</span>
+                                <span class="badge badge-primary">15 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Progression</span>
+                                    <span class="param-value">5+ → 6a → 6b</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Intensité</span>
+                                    <span class="param-value">Croissante</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Monter progressivement en cotation. Dernière voie 6b à allure soutenue mais contrôlée. Préparer le mental pour les essais 6c.
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--accent);">
+                            <div class="exercise-name">
+                                <span>2. Essais Flash 6c</span>
+                                <span class="badge" style="background: rgba(233, 69, 96, 0.2); color: var(--accent);">45 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Voies</span>
+                                    <span class="param-value">3 différentes</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Profils</span>
+                                    <span class="param-value">Varier</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Repos</span>
+                                    <span class="param-value">10 min</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Une tentative par voie (le flash). Si échec, noter où et pourquoi. Choisir : verticale (endurance), dévers (puissance), dalle (technique).
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--warning);">
+                            <div class="exercise-name">
+                                <span>3. Work 6c ciblé</span>
+                                <span class="badge badge-warning">30 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Méthode</span>
+                                    <span class="param-value">Par séquences</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Focus</span>
+                                    <span class="param-value">Crux identifiés</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Sur la voie qui t'a le plus accroché : travaille les mouvements difficiles en partant de la prise juste avant. Répète 3-4 fois jusqu'à fluidité.
+                            </div>
+                        </div>
+
+                        <div class="exercise-detail" style="border-left-color: var(--primary);">
+                            <div class="exercise-name">
+                                <span>4. Volume 6b (Pump)</span>
+                                <span class="badge badge-primary">20 min</span>
+                            </div>
+                            <div class="exercise-params">
+                                <div class="param">
+                                    <span class="param-label">Format</span>
+                                    <span class="param-value">2-3 voies</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Repos</span>
+                                    <span class="param-value">3 min max</span>
+                                </div>
+                            </div>
+                            <div class="exercise-notes">
+                                Enchaîner les voies 6b pour développer l'endurance de force. Dernière voie doit être difficile à terminer (pump gérable).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">Profils de voies à tester</div>
+                        <div class="technique-list">
+                            <span class="technique-tag">Verticale (endurance)</span>
+                            <span class="technique-tag">Dévers (puissance)</span>
+                            <span class="technique-tag">Dalle (technique)</span>
+                            <span class="technique-tag">Toit (force)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Journal de voies détaillé -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📝 Journal de voies</span>
+                    <button class="btn btn-small btn-outline" onclick="clearRoutes()">Effacer</button>
+                </div>
+                
+                <div class="route-form">
+                    <input type="text" id="routeName" placeholder="Nom ou n° voie">
+                    <select id="routeGrade">
+                        <option value="6a">6a</option>
+                        <option value="6b">6b</option>
+                        <option value="6b+">6b+</option>
+                        <option value="6c" selected>6c</option>
+                        <option value="6c+">6c+</option>
+                        <option value="7a">7a</option>
+                    </select>
+                    <select id="routeStatus">
+                        <option value="flash">Flash</option>
+                        <option value="work">Work</option>
+                        <option value="fail">Chute</option>
+                    </select>
+                </div>
+                
+                <div class="route-form" style="grid-template-columns: 1fr 1fr;">
+                    <select id="routeProfile">
+                        <option value="verticale">Verticale</option>
+                        <option value="devers">Dévers</option>
+                        <option value="dalle">Dalle</option>
+                        <option value="toit">Toit</option>
+                    </select>
+                    <input type="text" id="routeNotes" placeholder="Note (ex: crux au 3e clip)">
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%;" onclick="addRoute()">Ajouter la voie</button>
+                
+                <div class="route-list" id="routeList"></div>
+            </div>
+
+            <!-- Notes mur -->
+            <div class="card">
+                <div class="card-title" style="margin-bottom: 10px;">Notes de séance mur</div>
+                <textarea class="note-input" id="murNote" placeholder="Ressenti général, fatigue, douleurs, réussites..."></textarea>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('mur', 'murNote')">Sauvegarder</button>
+            </div>
+        </div>
+
+        <!-- FINGERBOARD TAB -->
+        <div id="finger" class="tab-content hidden">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🖐️ Fingerboard - Force de doigt</span>
+                    <span class="badge badge-primary" id="fingerWeekBadge">S1-4</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div>
+                        <label style="font-size: 0.85em; color: var(--text-muted);">Prise</label>
+                        <select id="holdSize" style="width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                            <option value="20mm">20mm (jugs)</option>
+                            <option value="15mm">15mm (medium)</option>
+                            <option value="10mm">10mm (small)</option>
+                            <option value="8mm">8mm (micro)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85em; color: var(--text-muted);">Phase</label>
+                        <select id="fingerPhase" style="width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+                            <option value="1-4">S1-4 : Adaptation</option>
+                            <option value="5-8">S5-8 : Intensification</option>
+                            <option value="9-12">S9-12 : Spécifique</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="exercise-detail" style="margin-bottom: 15px;">
+                    <div class="exercise-name">
+                        <span>Protocole actuel</span>
+                    </div>
+                    <div class="exercise-params">
+                        <div class="param">
+                            <span class="param-label">Séries</span>
+                            <span class="param-value" id="protocolSets">5</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Travail</span>
+                            <span class="param-value" id="protocolWork">7s</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Repos</span>
+                            <span class="param-value" id="protocolRest">53s</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Total</span>
+                            <span class="param-value" id="protocolTotal">5min</span>
+                        </div>
+                    </div>
+                    <div class="exercise-notes" id="protocolNotes">
+                        Suspension passive (bras tendus), prise choisie. Ajouter poids si trop facile (ceinture + poids).
+                    </div>
+                </div>
+                
+                <div class="timer-container">
+                    <div class="timer-display ready" id="timer">7</div>
+                    <div class="timer-phase" id="phase">Prêt à démarrer</div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress"></div>
+                    </div>
+                    
+                    <div class="timer-controls">
+                        <button class="btn btn-primary" onclick="startFingerTimer()" id="startBtn">▶ Démarrer</button>
+                        <button class="btn btn-secondary" onclick="stopFingerTimer()">⏹ Stop</button>
+                        <button class="btn btn-outline" onclick="resetFingerTimer()">↺ Reset</button>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-title">Progression de charge</div>
+                    <div style="font-size: 0.85em; color: var(--text-muted);">
+                        <strong>S1-4 :</strong> Poids du corps uniquement<br>
+                        <strong>S5-8 :</strong> +5kg (ceinture/sac)<br>
+                        <strong>S9-12 :</strong> +10-15kg ou prise plus petite
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title" style="margin-bottom: 10px;">Notes fingerboard</div>
+                <textarea class="note-input" id="fingerNote" placeholder="Ressenti doigts, prise utilisée, poids ajouté, douleurs éventuelles..."></textarea>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('fingerboard', 'fingerNote')">Sauvegarder</button>
+            </div>
+        </div>
+
+        <!-- ANNEAUX TAB -->
+        <div id="rings" class="tab-content hidden">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💪 Anneaux - Force générale</span>
+                    <span class="badge badge-warning">30 min</span>
+                </div>
+                
+                <div class="exercise-detail">
+                    <div class="exercise-name">
+                        <span>1. Tractions lestées</span>
+                        <span class="badge badge-primary">5×5</span>
+                    </div>
+                    <div class="exercise-params">
+                        <div class="param">
+                            <span class="param-label">Repos</span>
+                            <span class="param-value">2-3 min</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Tempo</span>
+                            <span class="param-value">Explosif montée</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Descente</span>
+                            <span class="param-value">Lente (3s)</span>
+                        </div>
+                    </div>
+                    <div class="exercise-notes">
+                        Ajouter du poids si 5 reps faciles (sac à dos avec livres). Dernière rep doit être difficile mais propre.
+                    </div>
+                </div>
+
+                <div class="exercise-detail" style="border-left-color: var(--warning);">
+                    <div class="exercise-name">
+                        <span>2. Dips aux anneaux</span>
+                        <span class="badge badge-warning">4×8</span>
+                    </div>
+                    <div class="exercise-params">
+                        <div class="param">
+                            <span class="param-label">Amplitude</span>
+                            <span class="param-value">Complète</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Coudes</span>
+                            <span class="param-value">Proche corps</span>
+                        </div>
+                    </div>
+                    <div class="exercise-notes">
+                        Si trop dur : pieds au sol (assistance). Si trop facile : jambes tendues devant ou lest.
+                    </div>
+                </div>
+
+                <div class="exercise-detail" style="border-left-color: var(--info);">
+                    <div class="exercise-name">
+                        <span>3. Rows (tirage horizontal)</span>
+                        <span class="badge badge-info">4×10</span>
+                    </div>
+                    <div class="exercise-params">
+                        <div class="param">
+                            <span class="param-label">Position</span>
+                            <span class="param-value">Corps gainé</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Difficulté</span>
+                            <span class="param-value">Inclinaison</span>
+                        </div>
+                    </div>
+                    <div class="exercise-notes">
+                        Plus tu recules les pieds, plus c'est dur. Tirer les coudes vers les hanches, pas vers la poitrine.
+                    </div>
+                </div>
+
+                <div class="exercise-detail" style="border-left-color: var(--primary);">
+                    <div class="exercise-name">
+                        <span>4. Gainage dynamique</span>
+                        <span class="badge badge-primary">3×30s</span>
+                    </div>
+                    <div class="exercise-params">
+                        <div class="param">
+                            <span class="param-label">Exercice</span>
+                            <span class="param-value">Hollow body</span>
+                        </div>
+                        <div class="param">
+                            <span class="param-label">Ou</span>
+                            <span class="param-value">Leg raises</span>
+                        </div>
+                    </div>
+                    <div class="exercise-notes">
+                        Gainage profond, pas juste les abdos. Important pour la tension corporelle en dévers.
+                    </div>
+                </div>
+
+                <div class="timer-container" style="margin-top: 20px;">
+                    <div class="timer-display work" id="ringTimer">30:00</div>
+                    <div class="timer-phase">Temps total de séance</div>
+                    
+                    <div class="timer-controls">
+                        <button class="btn btn-primary" onclick="startRingTimer()">▶ Démarrer</button>
+                        <button class="btn btn-secondary" onclick="stopRingTimer()">⏹ Stop</button>
+                        <button class="btn btn-outline" onclick="resetRingTimer()">↺ Reset</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title" style="margin-bottom: 10px;">Notes anneaux</div>
+                <textarea class="note-input" id="ringsNote" placeholder="Poids utilisé, reps réelles, difficulté ressentie..."></textarea>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('anneaux', 'ringsNote')">Sauvegarder</button>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="analytics" class="tab-content hidden">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📊 Progression 12 semaines</span>
+                </div>
+                
+                <div class="week-selector" id="weekSelector"></div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="currentWeekDisplay">1</div>
+                        <div class="metric-label">Semaine actuelle</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="weekPhase" style="font-size: 1.2em; color: var(--info);">Adaptation</div>
+                        <div class="metric-label">Phase</div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <div class="detail-title">Objectifs de la phase</div>
+                    <div id="phaseGoals" style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
+                        Semaines 1-4 : Consolidation technique, identification des faiblesses sur 6c, adaptation des doigts au fingerboard.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Statistiques de grimpe</span>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalRoutes">0</div>
+                        <div class="metric-label">Voies tracées</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="flashRate">0%</div>
+                        <div class="metric-label">Taux de flash 6c</div>
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalSessions">0</div>
+                        <div class="metric-label">Séances total</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="thisWeekSessions">0</div>
+                        <div class="metric-label">Cette semaine</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Historique récent</span>
+                </div>
+                <div id="historyList" style="max-height: 400px; overflow-y: auto;">
+                    <p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune donnée</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⚠️ Santé des doigts</span>
+                </div>
+                <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
+                    <strong>Signes d'alerte :</strong><br>
+                    • Douleur vive dans un doigt (tendon) = arrêt immédiat<br>
+                    • Douleur articulaire persistante = 1 semaine de repos<br>
+                    • Raideur matinale normale, mais doit disparaître en 10 min<br><br>
+                    <strong>Règle d'or :</strong> Mieux vaut 2 semaines de repos que 6 mois de blessure.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rest Timer Floating -->
+    <div class="rest-timer hidden" id="restTimer" onclick="toggleRestTimer()">
+        <span id="restTimerDisplay">3:00</span>
+    </div>
+
+    <script>
+        // State
+        let currentTab = 'mur';
+        let currentMurSession = 'mardi';
+        let currentWeek = 1;
+        let fingerTimer = null;
+        let ringTimer = null;
+        let restTimerInterval = null;
+        let restTimeLeft = 180; // 3 min default
+        
+        // Data
+        const phases = {
+            '1-4': {
+                name: 'Adaptation',
+                goals: 'Consolidation technique, identification des faiblesses sur 6c, adaptation des doigts au fingerboard. Volume modéré, intensité progressive.',
+                finger: { sets: 5, work: 7, rest: 53, note: 'Poids du corps uniquement. Focus sur la qualité de suspension.' }
+            },
+            '5-8': {
+                name: 'Intensification',
+                goals: 'Force maximale. Ajout de lest au fingerboard, travail spécifique des profils faibles (dévers ou dalle selon tes résultats).',
+                finger: { sets: 5, work: 7, rest: 53, note: 'Ajouter +5kg (ceinture ou sac à dos).' }
+            },
+            '9-12': {
+                name: 'Conversion',
+                goals: 'Transfert de force vers la performance. Essais flash 6c, réduction du temps de repos, enchaînements.',
+                finger: { sets: 4, work: 5, rest: 55, note: '+10-15kg ou prise 10mm/8mm selon niveau.' }
+            }
+        };
+        
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedWeek = parseInt(localStorage.getItem('climbingWeek') || '1', 10);
+            currentWeek = savedWeek >= 1 && savedWeek <= 12 ? savedWeek : 1;
+            initWeekSelector();
+            updateFingerProtocol();
+            loadRoutes();
+            loadHistory();
+            updateStats();
+        });
+        
+        // Tab management
+        function showTab(tabName, btn) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.remove('hidden');
+            if (btn) btn.classList.add('active');
+        }
+        
+        // Mur Session Toggle
+        function setMurSession(session) {
+            currentMurSession = session;
+            document.getElementById('mardiDetail').classList.toggle('hidden', session !== 'mardi');
+            document.getElementById('jeudiDetail').classList.toggle('hidden', session !== 'jeudi');
+            document.getElementById('btnMardi').className = session === 'mardi' ? 'btn btn-primary' : 'btn btn-ghost';
+            document.getElementById('btnJeudi').className = session === 'jeudi' ? 'btn btn-primary' : 'btn btn-ghost';
+        }
+        
+        // Week Selector
+        function initWeekSelector() {
+            const container = document.getElementById('weekSelector');
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'week-btn';
+                btn.textContent = i;
+                btn.onclick = () => selectWeek(i);
+                container.appendChild(btn);
+            }
+            selectWeek(currentWeek);
+        }
+        
+        function selectWeek(week) {
+            currentWeek = week;
+            localStorage.setItem('climbingWeek', week);
+            document.querySelectorAll('.week-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx + 1 === week);
+            });
+            document.getElementById('currentWeekDisplay').textContent = week;
+            
+            const phaseKey = week <= 4 ? '1-4' : week <= 8 ? '5-8' : '9-12';
+            const phase = phases[phaseKey];
+            document.getElementById('weekPhase').textContent = phase.name;
+            document.getElementById('phaseGoals').textContent = phase.goals;
+            document.getElementById('murWeekBadge').textContent = 'Semaine ' + week;
+            document.getElementById('fingerWeekBadge').textContent = 'S' + phaseKey;
+            
+            updateFingerProtocol();
+        }
+        
+        // Fingerboard Protocol
+        function updateFingerProtocol() {
+            const phaseKey = currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
+            const protocol = phases[phaseKey].finger;
+            
+            document.getElementById('protocolSets').textContent = protocol.sets;
+            document.getElementById('protocolWork').textContent = protocol.work + 's';
+            document.getElementById('protocolRest').textContent = protocol.rest + 's';
+            document.getElementById('protocolTotal').textContent = Math.ceil((protocol.sets * (protocol.work + protocol.rest)) / 60) + 'min';
+            document.getElementById('protocolNotes').textContent = protocol.note;
+            
+            document.getElementById('timer').textContent = protocol.work;
+        }
+        
+        document.getElementById('fingerPhase').addEventListener('change', (e) => {
+            const val = e.target.value;
+            const week = val === '1-4' ? 1 : val === '5-8' ? 5 : 9;
+            selectWeek(week);
+        });
+        
+        // Self-correcting interval (avoids timer drift)
+        function createTick(onTick, interval) {
+            interval = interval || 1000;
+            let expected = Date.now() + interval;
+            let timer = null;
+            const step = () => {
+                const drift = Date.now() - expected;
+                onTick();
+                expected += interval;
+                timer = setTimeout(step, Math.max(0, interval - drift));
+            };
+            timer = setTimeout(step, interval);
+            return {
+                stop: () => { if (timer) { clearTimeout(timer); timer = null; } }
+            };
+        }
+        
+        // Fingerboard Timer
+        function startFingerTimer() {
+            if (fingerTimer) return;
+            
+            const phaseKey = currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
+            const config = phases[phaseKey].finger;
+            
+            let currentSet = 1;
+            let isWork = true;
+            let timeLeft = config.work;
+            
+            updateFingerDisplay(timeLeft, isWork, currentSet, config);
+            
+            fingerTimer = createTick(() => {
+                timeLeft--;
+                
+                if (timeLeft <= 0) {
+                    if (isWork) {
+                        // Switch to rest
+                        isWork = false;
+                        timeLeft = config.rest;
+                        vibrate();
+                        showRestTimer();
+                    } else {
+                        // Switch to work or finish
+                        if (currentSet >= config.sets) {
+                            stopFingerTimer();
+                            document.getElementById('phase').textContent = 'Séance terminée ! 🎉';
+                            document.getElementById('timer').className = 'timer-display work';
+                            document.getElementById('progress').style.width = '100%';
+                            saveSession('fingerboard', 'Terminé - ' + document.getElementById('holdSize').value);
+                            return;
+                        }
+                        currentSet++;
+                        isWork = true;
+                        timeLeft = config.work;
+                        vibrate();
+                        hideRestTimer();
+                    }
+                }
+                
+                updateFingerDisplay(timeLeft, isWork, currentSet, config);
+            });
+            
+            document.getElementById('startBtn').disabled = true;
+        }
+        
+        function updateFingerDisplay(time, isWork, set, config) {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = time;
+            timerEl.className = 'timer-display ' + (isWork ? 'work' : 'rest');
+            
+            document.getElementById('phase').textContent = isWork ? 
+                `Travail - Série ${set}/${config.sets}` : 
+                `Repos - Série ${set}/${config.sets} terminée`;
+            
+            const total = isWork ? config.work : config.rest;
+            const progress = ((total - time) / total) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+        
+        function stopFingerTimer() {
+            if (fingerTimer) { fingerTimer.stop(); fingerTimer = null; }
+            document.getElementById('startBtn').disabled = false;
+            hideRestTimer();
+        }
+        
+        function resetFingerTimer() {
+            stopFingerTimer();
+            updateFingerProtocol();
+            document.getElementById('phase').textContent = 'Prêt à démarrer';
+            document.getElementById('timer').className = 'timer-display ready';
+            document.getElementById('progress').style.width = '0%';
+        }
+        
+        // Rings Timer
+        let ringTimeLeft = 1800; // 30 min
+        
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function startRingTimer() {
+            if (ringTimer) return;
+            ringTimer = createTick(() => {
+                ringTimeLeft--;
+                
+                if (ringTimeLeft <= 0) {
+                    stopRingTimer();
+                    vibrate();
+                    saveSession('anneaux', 'Séance 30min terminée');
+                    return;
+                }
+                
+                document.getElementById('ringTimer').textContent = formatTime(ringTimeLeft);
+            });
+        }
+        
+        function stopRingTimer() {
+            if (ringTimer) { ringTimer.stop(); ringTimer = null; }
+        }
+        
+        function resetRingTimer() {
+            stopRingTimer();
+            ringTimeLeft = 1800;
+            document.getElementById('ringTimer').textContent = '30:00';
+        }
+        
+        // Rest Timer (Floating)
+        function showRestTimer() {
+            const el = document.getElementById('restTimer');
+            el.classList.remove('hidden');
+            el.classList.add('active');
+            startRestTimer(180); // 3 min
+        }
+        
+        function hideRestTimer() {
+            document.getElementById('restTimer').classList.add('hidden');
+            stopRestTimer();
+        }
+        
+        function startRestTimer(seconds) {
+            restTimeLeft = seconds;
+            updateRestDisplay();
+            if (restTimerInterval) stopRestTimer();
+            restTimerInterval = createTick(() => {
+                restTimeLeft--;
+                updateRestDisplay();
+                if (restTimeLeft <= 0) {
+                    stopRestTimer();
+                    vibrate();
+                }
+            });
+        }
+        
+        function stopRestTimer() {
+            if (restTimerInterval) { restTimerInterval.stop(); restTimerInterval = null; }
+        }
+        
+        function updateRestDisplay() {
+            const mins = Math.floor(restTimeLeft / 60);
+            const secs = restTimeLeft % 60;
+            document.getElementById('restTimerDisplay').textContent = 
+                `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function toggleRestTimer() {
+            if (restTimerInterval) {
+                stopRestTimer();
+            } else {
+                startRestTimer(restTimeLeft);
+            }
+        }
+        
+        // Routes Management
+        function addRoute() {
+            const name = document.getElementById('routeName').value;
+            const grade = document.getElementById('routeGrade').value;
+            const status = document.getElementById('routeStatus').value;
+            const profile = document.getElementById('routeProfile').value;
+            const notes = document.getElementById('routeNotes').value;
+            
+            if (!name.trim()) return;
+            
+            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
+            routes.unshift({
+                name, grade, status, profile, notes,
+                date: new Date().toISOString(),
+                session: currentMurSession,
+                week: currentWeek
+            });
+            localStorage.setItem('climbingRoutes', JSON.stringify(routes.slice(0, 50)));
+            
+            // Clear inputs
+            document.getElementById('routeName').value = '';
+            document.getElementById('routeNotes').value = '';
+            
+            loadRoutes();
+            updateStats();
+        }
+        
+        function loadRoutes() {
+            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
+            const list = document.getElementById('routeList');
+            
+            if (routes.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune voie tracée</p>';
+                return;
+            }
+            
+            list.innerHTML = routes.slice(0, 8).map(r => {
+                const statusClass = r.status === 'flash' ? 'flash' : r.status === 'work' ? 'work' : 'fail';
+                const statusBadge = r.status === 'flash' ? 'status-flash' : r.status === 'work' ? 'status-work' : 'status-fail';
+                const statusText = r.status === 'flash' ? '✓ Flash' : r.status === 'work' ? '◐ Work' : '✗ Chute';
+                
+                return `
+                    <div class="route-item ${statusClass}">
+                        <div class="route-info">
+                            <h4>${escapeHtml(r.name)} <span class="route-grade">${escapeHtml(r.grade)}</span></h4>
+                            <div class="route-meta">
+                                <span>${escapeHtml(r.profile)}</span>
+                                <span>•</span>
+                                <span>${escapeHtml(r.session)}</span>
+                                <span>•</span>
+                                <span>S${escapeHtml(r.week)}</span>
+                            </div>
+                            ${r.notes ? `<div style="font-size: 0.8em; color: var(--text-muted); margin-top: 4px; font-style: italic;">${escapeHtml(r.notes)}</div>` : ''}
+                        </div>
+                        <span class="status-badge ${statusBadge}">${statusText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function clearRoutes() {
+            if (confirm('Effacer toutes les voies tracées ?')) {
+                localStorage.removeItem('climbingRoutes');
+                loadRoutes();
+                updateStats();
+            }
+        }
+        
+        // Notes & History
+        function saveNote(type, noteId) {
+            const note = document.getElementById(noteId).value;
+            if (!note.trim()) return;
+            
+            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
+            sessions.unshift({
+                date: new Date().toISOString(),
+                type: type,
+                note: note,
+                week: currentWeek
+            });
+            localStorage.setItem('climbingSessions', JSON.stringify(sessions.slice(0, 50)));
+            document.getElementById(noteId).value = '';
+            loadHistory();
+            updateStats();
+            alert('Note sauvegardée ! ✅');
+        }
+        
+        function saveSession(type, status) {
+            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
+            sessions.unshift({
+                date: new Date().toISOString(),
+                type: type,
+                note: status,
+                week: currentWeek
+            });
+            localStorage.setItem('climbingSessions', JSON.stringify(sessions.slice(0, 50)));
+            loadHistory();
+            updateStats();
+        }
+        
+        function loadHistory() {
+            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
+            const list = document.getElementById('historyList');
+            
+            if (sessions.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune séance enregistrée</p>';
+                return;
+            }
+            
+            const icons = { 'mur': '🏔️', 'fingerboard': '🖐️', 'anneaux': '💪' };
+            
+            list.innerHTML = sessions.slice(0, 15).map(s => `
+                <div style="padding: 15px; background: var(--bg); margin-bottom: 10px; border-radius: 10px; border-left: 3px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <strong>${icons[s.type] || '📝'} ${s.type.charAt(0).toUpperCase() + s.type.slice(1)}</strong>
+                        <small style="color: var(--text-muted);">${new Date(s.date).toLocaleDateString('fr-FR')}</small>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.9em; line-height: 1.4;">${escapeHtml(s.note)}</div>
+                    <div style="margin-top: 8px;">
+                        <span class="badge badge-primary">Semaine ${s.week}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateStats() {
+            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
+            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
+            
+            document.getElementById('totalSessions').textContent = sessions.length;
+            document.getElementById('totalRoutes').textContent = routes.length;
+            
+            // Flash rate for 6c
+            const sixC = routes.filter(r => r.grade === '6c');
+            const sixCFlash = sixC.filter(r => r.status === 'flash').length;
+            const rate = sixC.length > 0 ? Math.round((sixCFlash / sixC.length) * 100) : 0;
+            document.getElementById('flashRate').textContent = rate + '%';
+            
+            // This week (semaine commençant le lundi)
+            const now = new Date();
+            const day = now.getDay() === 0 ? 7 : now.getDay();
+            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (day - 1));
+            const thisWeek = sessions.filter(s => new Date(s.date) >= weekStart).length;
+            document.getElementById('thisWeekSessions').textContent = thisWeek;
+        }
+        
+        // Utilities
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m]));
+        }
+        
+        function vibrate() {
+            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+        }
+        
+        // PWA : enregistrement du service worker (offline / installation)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
