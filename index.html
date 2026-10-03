@@ -1,1585 +1,1074 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f0f1a">
-    <meta name="description" content="Programme d'entraînement escalade niveau 6c : force, technique et suivi de progression.">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Escalade Pro">
-    <link rel="manifest" href="./manifest.webmanifest">
-    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-    <link rel="apple-touch-icon" href="./icons/icon-180.png">
-    <title>Escalade Pro Training</title>
-    <style>
-        :root {
-            --bg: #0f0f1a;
-            --card: #16213e;
-            --card-hover: #1a2745;
-            --primary: #4CAF50;
-            --primary-dark: #388E3C;
-            --accent: #e94560;
-            --warning: #ff9800;
-            --info: #2196F3;
-            --text: #e0e0e0;
-            --text-muted: #888;
-            --border: #2a2a3a;
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 15px;
-            padding-bottom: 100px;
-            line-height: 1.5;
-        }
-        
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        h1 { 
-            color: var(--primary); 
-            font-size: 1.6em; 
-            margin-bottom: 5px;
-            font-weight: 700;
-        }
-        
-        .subtitle { 
-            color: var(--text-muted); 
-            font-size: 0.9em; 
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-            scrollbar-width: none;
-        }
-        .tabs::-webkit-scrollbar { display: none; }
-        
-        .tab {
-            flex: 1;
-            min-width: 90px;
-            padding: 12px 8px;
-            background: var(--card);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-            text-align: center;
-            font-size: 0.9em;
-        }
-        .tab.active { 
-            background: rgba(76, 175, 80, 0.15); 
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-        
-        .card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .card-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--text);
-        }
-        
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .badge-primary { background: rgba(76, 175, 80, 0.2); color: var(--primary); }
-        .badge-warning { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
-        .badge-info { background: rgba(33, 150, 243, 0.2); color: var(--info); }
-        .badge-accent { background: rgba(233, 69, 96, 0.2); color: var(--accent); }
-        
-        /* Timer Styles */
-        .timer-container {
-            text-align: center;
-            padding: 30px 20px;
-            background: var(--bg);
-            border-radius: 12px;
-            margin: 15px 0;
-        }
-        
-        .timer-display {
-            font-size: 5em;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-        .timer-display.work { color: var(--primary); }
-        .timer-display.rest { color: var(--warning); }
-        .timer-display.ready { color: var(--info); }
-        
-        .timer-phase {
-            font-size: 1.1em;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            min-height: 24px;
-        }
-        
-        .timer-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: var(--accent); color: white; }
-        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .btn-ghost { background: rgba(255,255,255,0.1); color: var(--text); }
-        .btn-small { padding: 8px 14px; font-size: 0.85em; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--bg);
-            border-radius: 3px;
-            overflow: hidden;
-            margin: 15px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        /* Exercise Styles */
-        .exercise-detail {
-            background: var(--bg);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-left: 3px solid var(--primary);
-        }
-        
-        .exercise-name {
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .exercise-params {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-            font-size: 0.85em;
-            color: var(--text-muted);
-        }
-        
-        .param {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .param-value {
-            color: var(--text);
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        
-        .exercise-notes {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-            font-size: 0.85em;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-        
-        /* Route Logging */
-        .route-form {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .route-form input, .route-form select {
-            padding: 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 0.9em;
-        }
-        
-        .route-form input:focus, .route-form select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .route-list {
-            margin-top: 15px;
-        }
-        
-        .route-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: var(--bg);
-            margin-bottom: 10px;
-            border-radius: 10px;
-            border-left: 4px solid var(--info);
-            transition: transform 0.2s;
-        }
-        
-        .route-item:active { transform: scale(0.98); }
-        .route-item.flash { border-left-color: var(--primary); }
-        .route-item.work { border-left-color: var(--warning); }
-        .route-item.fail { border-left-color: var(--accent); }
-        
-        .route-info h4 { margin-bottom: 4px; font-size: 1em; }
-        .route-meta { 
-            font-size: 0.8em; 
-            color: var(--text-muted);
-            display: flex;
-            gap: 10px;
-        }
-        
-        .route-grade {
-            font-weight: 700;
-            color: var(--info);
-        }
-        
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8em;
-            font-weight: 600;
-        }
-        .status-flash { background: rgba(76, 175, 80, 0.2); color: var(--primary); }
-        .status-work { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
-        .status-fail { background: rgba(233, 69, 96, 0.2); color: var(--accent); }
-        
-        /* Metrics */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-        }
-        
-        .metric-card {
-            background: var(--bg);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .metric-value {
-            font-size: 2em;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 5px;
-        }
-        
-        .metric-label {
-            font-size: 0.8em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        
-        /* Detail Sections */
-        .detail-section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
-        }
-        
-        .detail-title {
-            font-size: 0.95em;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .technique-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .technique-tag {
-            padding: 6px 12px;
-            background: var(--bg);
-            border-radius: 20px;
-            font-size: 0.8em;
-            border: 1px solid var(--border);
-        }
-        
-        .technique-tag.active {
-            background: rgba(76, 175, 80, 0.15);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        
-        /* Rest Timer */
-        .rest-timer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: var(--card);
-            border: 3px solid var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2em;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 100;
-            cursor: pointer;
-        }
-        
-        .rest-timer.active {
-            border-color: var(--warning);
-            color: var(--warning);
-        }
-        
-        /* Notes */
-        .note-input {
-            width: 100%;
-            padding: 15px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            min-height: 100px;
-            font-family: inherit;
-            resize: vertical;
-            margin-top: 10px;
-        }
-        
-        .note-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        /* Week Selector */
-        .week-selector {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 5px 0;
-            margin-bottom: 15px;
-        }
-        
-        .week-btn {
-            min-width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            border: 2px solid var(--border);
-            background: var(--bg);
-            color: var(--text-muted);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .week-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-        
-        .week-btn.completed {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="Programme d'entraînement escalade : niveau réglable de 5b à 8a, plan jour par jour, suivi de progression.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Escalade">
+<meta name="theme-color" content="#0b0d12">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<title>Escalade Pro Training</title>
+<style>
+:root{
+    --bg:#0b0d12;
+    --surface:#141821;
+    --surface-2:#1b2130;
+    --line:#242b3a;
+    --text:#e9edf4;
+    --muted:#8891a5;
+    --lime:#9fe870;
+    --sky:#63b3ff;
+    --amber:#ffb454;
+    --rose:#ff6b7a;
+    --violet:#b39dff;
+    --r:16px;
+    --pad:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    font-size:15px;
+    line-height:1.45;
+    padding:0 var(--pad) 96px;
+    max-width:620px;
+    margin:0 auto;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{font-weight:700;letter-spacing:-.01em}
 
-        /* Level */
-        .level-row { display: flex; align-items: center; gap: 12px; }
-        .level-range { flex: 1; accent-color: var(--primary); height: 30px; }
-        .level-scale {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75em;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-        .coach-box {
-            margin-top: 14px;
-            padding: 12px 14px;
-            background: var(--bg);
-            border-left: 3px solid var(--info);
-            border-radius: 8px;
-            font-size: 0.85em;
-            line-height: 1.6;
-            color: var(--text-muted);
-        }
-        .coach-box b { color: var(--text); }
+/* ---------- Barre du haut ---------- */
+.topbar{
+    position:sticky;top:0;z-index:40;
+    display:flex;align-items:center;gap:10px;
+    margin:0 calc(var(--pad) * -1);
+    padding:14px var(--pad) 12px;
+    padding-top:calc(14px + env(safe-area-inset-top));
+    background:rgba(11,13,18,.82);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+}
+.brand{font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.brand small{display:block;font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.spacer{flex:1}
+.chip{
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--muted);
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:.75rem;font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.chip.on{background:rgba(159,232,112,.14);border-color:var(--lime);color:var(--lime)}
 
-        /* Day selector */
-        .day-selector {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-        }
-        .day-btn {
-            padding: 9px 2px;
-            border-radius: 10px;
-            border: 2px solid var(--border);
-            background: var(--bg);
-            color: var(--text-muted);
-            font-size: 0.72em;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .day-btn.today { border-color: var(--info); color: var(--info); }
-        .day-btn.rest { opacity: 0.65; }
-        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
-        
-        /* Hidden */
-        .hidden { display: none !important; }
-        
-        /* Responsive */
-        @media (max-width: 480px) {
-            .timer-display { font-size: 4em; }
-            .route-form { grid-template-columns: 1fr; }
-            .metrics-grid { grid-template-columns: 1fr; }
-            .exercise-params { grid-template-columns: 1fr 1fr; }
-        }
-    </style>
+/* ---------- Cartes ---------- */
+.card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:var(--pad);
+    margin:14px 0;
+}
+.card.tight{padding:12px}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.card-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.card-head .spacer{flex:1}
+
+.hero{background:linear-gradient(160deg,var(--surface-2),var(--surface));border-color:#2c3448}
+.hero h2{font-size:1.35rem;margin-bottom:2px}
+.hero .sub{color:var(--muted);font-size:.85rem}
+.label{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.brief{color:#c3cbdb;font-size:.9rem;line-height:1.6}
+.brief b{color:var(--text)}
+
+/* ---------- Boutons ---------- */
+.btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    min-height:44px;padding:0 18px;
+    border:1px solid transparent;border-radius:999px;
+    font:inherit;font-weight:700;font-size:.9rem;
+    cursor:pointer;transition:transform .12s,background .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--lime);color:#0b0d12}
+.btn-dark{background:var(--surface-2);color:var(--text);border-color:var(--line)}
+.btn-block{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Segments ---------- */
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px}
+.seg button{
+    flex:1;border:0;background:transparent;color:var(--muted);
+    font:inherit;font-weight:700;font-size:.82rem;
+    padding:9px 4px;border-radius:999px;cursor:pointer;
+}
+.seg button.on{background:var(--surface-2);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
+
+/* ---------- Niveau ---------- */
+.lvl{display:flex;align-items:center;gap:12px;margin-top:4px}
+.lvl input[type=range]{flex:1;appearance:none;height:30px;background:transparent;cursor:pointer}
+.lvl input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--sky),var(--lime),var(--rose))}
+.lvl input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--sky),var(--lime),var(--rose))}
+.lvl input[type=range]::-webkit-slider-thumb{
+    appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:50%;
+    background:var(--text);border:4px solid var(--bg);box-shadow:0 0 0 1px var(--line);
+}
+.lvl input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--text);border:4px solid var(--bg)}
+.step{
+    width:44px;height:44px;flex:0 0 44px;border-radius:50%;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+    font-size:1.2rem;font-weight:700;cursor:pointer;
+}
+.lvl-meta{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:2px}
+
+/* ---------- Checklist ---------- */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:12px;border-radius:13px;
+    background:var(--surface-2);border:1px solid transparent;
+}
+.item.done{opacity:.45}
+.item.done .item-t{text-decoration:line-through}
+.tick{
+    flex:0 0 26px;width:26px;height:26px;margin-top:2px;
+    border-radius:50%;border:2px solid var(--line);background:transparent;
+    color:transparent;font-size:.8rem;font-weight:800;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+}
+.item.done .tick{background:var(--lime);border-color:var(--lime);color:#0b0d12}
+.item-b{flex:1;min-width:0}
+.item-t{font-weight:700;font-size:.95rem}
+.item-d{font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.item-p{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.pill{
+    font-size:.72rem;font-weight:700;color:#c3cbdb;
+    background:var(--bg);border:1px solid var(--line);
+    border-radius:999px;padding:3px 9px;
+}
+.pill b{color:var(--text);font-weight:800}
+.item-n{margin-top:8px;font-size:.82rem;color:var(--muted);line-height:1.55}
+
+/* ---------- Semaine ---------- */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{
+    border:1px solid var(--line);background:var(--surface-2);
+    border-radius:12px;padding:9px 2px;text-align:center;cursor:pointer;
+    font-size:.7rem;font-weight:800;color:var(--muted);
+}
+.day.on{background:var(--surface-2);border-color:var(--text);color:var(--text)}
+.day.today{border-color:var(--lime)}
+.day .dot{display:block;width:6px;height:6px;border-radius:50%;margin:5px auto 0}
+.day .check{display:block;font-size:.7rem;color:var(--lime);height:.9rem}
+.wk{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
+.wk::-webkit-scrollbar{display:none}
+.wk button{
+    flex:0 0 auto;width:34px;height:34px;border-radius:10px;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
+    font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;
+}
+.wk button.on{background:var(--lime);border-color:var(--lime);color:#0b0d12}
+
+/* ---------- Formulaires ---------- */
+input,select,textarea{
+    font:inherit;color:var(--text);
+    background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    padding:12px;width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
+textarea{min-height:78px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{display:flex;gap:6px}
+.choice button{
+    flex:1;min-height:40px;border-radius:11px;border:1px solid var(--line);
+    background:var(--bg);color:var(--muted);font:inherit;font-weight:700;font-size:.8rem;cursor:pointer;
+}
+.choice button.on{border-color:var(--lime);background:rgba(159,232,112,.14);color:var(--lime)}
+
+/* ---------- Journal ---------- */
+.route{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 12px;border-radius:12px;background:var(--surface-2);margin-bottom:7px;
+}
+.route .g{font-weight:800;font-size:.95rem;min-width:36px}
+.route .n{flex:1;min-width:0;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.route .m{font-size:.7rem;color:var(--muted)}
+.tag{font-size:.68rem;font-weight:800;border-radius:6px;padding:3px 7px;text-transform:uppercase;letter-spacing:.04em}
+.tag-flash{background:rgba(159,232,112,.16);color:var(--lime)}
+.tag-work{background:rgba(255,180,84,.16);color:var(--amber)}
+.tag-fail{background:rgba(255,107,122,.16);color:var(--rose)}
+.x{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0 4px}
+
+/* ---------- Chrono ---------- */
+.timer{
+    text-align:center;padding:22px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--line);
+}
+.timer .val{font-size:3.6rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.timer .val.work{color:var(--lime)}
+.timer .val.rest{color:var(--amber)}
+.timer .val.ready{color:var(--sky)}
+.timer .ph{font-size:.82rem;color:var(--muted);margin:8px 0 14px;min-height:20px}
+.bar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;width:0;background:var(--lime);transition:width .3s}
+
+/* ---------- Stats ---------- */
+.grid-m{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--bg);border-radius:12px;padding:14px;text-align:center}
+.stat .v{font-size:1.9rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--lime);line-height:1.1}
+.stat .l{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.hist{background:var(--bg);border-radius:11px;padding:11px 12px;margin-bottom:7px;font-size:.85rem}
+.hist .d{font-size:.7rem;color:var(--muted);margin-bottom:3px}
+.warn{border-left:3px solid var(--rose);background:rgba(255,107,122,.07)}
+.warn p{font-size:.85rem;color:#c3cbdb;line-height:1.6}
+.empty{text-align:center;color:var(--muted);font-size:.85rem;padding:22px 10px}
+
+/* ---------- Nav basse ---------- */
+.tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:50;
+    display:flex;
+    background:rgba(17,20,27,.94);
+    backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar button{
+    flex:1;border:0;background:transparent;color:var(--muted);
+    font:inherit;font-size:.62rem;font-weight:700;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:7px 2px;border-radius:12px;cursor:pointer;
+}
+.tabbar button b{font-size:1.15rem;font-weight:400;line-height:1}
+.tabbar button.on{color:var(--lime)}
+
+/* ---------- Repos flottant ---------- */
+.rest{
+    position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:60;
+    min-width:62px;height:62px;padding:0 14px;border-radius:999px;
+    background:var(--surface-2);border:2px solid var(--amber);color:var(--amber);
+    font-weight:800;font-variant-numeric:tabular-nums;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.hidden{display:none !important}
+@media (max-width:380px){ .timer .val{font-size:3rem} }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🧗 Escalade Pro</h1>
-<p class="subtitle">Programme <span id="hdrGrade">6c</span> · Force & Technique</p>
-        </header>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('plan', this)">🗓️ Plan</button>
-            <button class="tab" onclick="showTab('finger', this)">🖐️ Finger</button>
-            <button class="tab" onclick="showTab('rings', this)">💪 Anneaux</button>
-            <button class="tab" onclick="showTab('analytics', this)">📊 Analyse</button>
+
+<div class="topbar">
+    <div class="brand">🧗 Escalade<small>Plan & progression</small></div>
+    <div class="spacer"></div>
+    <button class="chip" id="chipWeek" onclick="go('week')">S<span id="hdrWeek">1</span></button>
+    <button class="chip on" id="chipGrade" onclick="go('today')"><span id="hdrGrade">6c</span></button>
+</div>
+
+<!-- ================= AUJOURD'HUI ================= -->
+<section id="v-today">
+    <div class="card hero">
+        <div class="label" id="todayDate">Aujourd'hui</div>
+        <h2 id="todayTitle">Séance</h2>
+        <p class="sub" id="todaySub"></p>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <span class="card-title">Ta séance</span>
+            <span class="spacer"></span>
+            <span class="chip" id="todayPct">0 %</span>
         </div>
+        <p class="brief" id="todayBrief"></p>
+        <div class="list" id="todayList" style="margin-top:12px"></div>
+        <button class="btn btn-primary btn-block" id="todayDone" style="margin-top:12px" onclick="finishDay()">Séance terminée</button>
+    </div>
 
-        <!-- PLAN TAB -->
-        <div id="plan" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">🎯 Niveau d'entraînement</span>
-                    <span class="badge badge-primary" id="levelBadge">6c</span>
-                </div>
-                <div class="level-row">
-                    <button class="btn btn-small btn-ghost" onclick="setLevel(level - 1)">▼</button>
-                    <input type="range" min="1" max="9" step="1" value="5" id="levelRange" class="level-range" oninput="setLevel(this.value)">
-                    <button class="btn btn-small btn-ghost" onclick="setLevel(level + 1)">▲</button>
-                </div>
-                <div class="level-scale">
-                    <span>5+</span>
-                    <strong id="levelLabel">6c</strong>
-                    <span>7c</span>
-                </div>
-                <div class="coach-box" id="coachBox"></div>
-                <button class="btn btn-outline btn-small" style="width: 100%; margin-top: 10px;" onclick="coachSuggest()">🧠 Demander un avis au coach</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">🗓️ Plan de la semaine</span>
-                    <span class="badge badge-primary" id="planWeekBadge">S1</span>
-                </div>
-                <div class="day-selector" id="daySelector"></div>
-            </div>
-
-            <div id="dayPlan"></div>
-
-            <!-- Journal de voies détaillé -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">📝 Journal de voies</span>
-                    <button class="btn btn-small btn-outline" onclick="clearRoutes()">Effacer</button>
-                </div>
-                
-                <div class="route-form">
-                    <input type="text" id="routeName" placeholder="Nom ou n° voie">
-                    <select id="routeGrade"></select>
-                    <select id="routeStatus">
-                        <option value="flash">Flash</option>
-                        <option value="work">Work</option>
-                        <option value="fail">Chute</option>
-                    </select>
-                </div>
-                
-                <div class="route-form" style="grid-template-columns: 1fr 1fr;">
-                    <select id="routeProfile">
-                        <option value="verticale">Verticale</option>
-                        <option value="devers">Dévers</option>
-                        <option value="dalle">Dalle</option>
-                        <option value="toit">Toit</option>
-                    </select>
-                    <input type="text" id="routeNotes" placeholder="Note (ex: crux au 3e clip)">
-                </div>
-                
-                <button class="btn btn-primary" style="width: 100%;" onclick="addRoute()">Ajouter la voie</button>
-                
-                <div class="route-list" id="routeList"></div>
-            </div>
-
-            <!-- Notes mur -->
-            <div class="card">
-                <div class="card-title" style="margin-bottom: 10px;">Notes de séance mur</div>
-                <textarea class="note-input" id="murNote" placeholder="Ressenti général, fatigue, douleurs, réussites..."></textarea>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('mur', 'murNote')">Sauvegarder</button>
-            </div>
+    <div class="card">
+        <div class="card-head">
+            <span class="card-title">Niveau d'entraînement</span>
+            <span class="spacer"></span>
+            <span class="chip on" id="lvlGrade">6c</span>
         </div>
+        <div class="lvl">
+            <button class="step" onclick="setLevel(level-1)">−</button>
+            <input type="range" id="lvlRange" min="1" max="9" step="1" value="5" oninput="setLevel(+this.value)">
+            <button class="step" onclick="setLevel(level+1)">+</button>
+        </div>
+        <div class="lvl-meta"><span>5b</span><span id="lvlWord">charge élevée</span><span>8a</span></div>
+        <p class="brief" id="coachLine" style="margin-top:12px"></p>
+        <button class="btn btn-dark btn-block" style="margin-top:10px" onclick="askCoach()">🧠 Conseiller le coach</button>
+    </div>
 
-        <!-- FINGERBOARD TAB -->
-        <div id="finger" class="tab-content hidden">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">🖐️ Fingerboard - Force de doigt</span>
-                    <span class="badge badge-primary" id="fingerWeekBadge">S1-4</span>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                    <div>
-                        <label style="font-size: 0.85em; color: var(--text-muted);">Prise</label>
-                        <select id="holdSize" style="width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
-                            <option value="20mm">20mm (jugs)</option>
-                            <option value="15mm">15mm (medium)</option>
-                            <option value="10mm">10mm (small)</option>
-                            <option value="8mm">8mm (micro)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size: 0.85em; color: var(--text-muted);">Phase</label>
-                        <select id="fingerPhase" style="width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
-                            <option value="1-4">S1-4 : Adaptation</option>
-                            <option value="5-8">S5-8 : Intensification</option>
-                            <option value="9-12">S9-12 : Spécifique</option>
-                        </select>
-                    </div>
-                </div>
+    <div class="card">
+        <div class="card-head"><span class="card-title">Cette semaine</span><span class="spacer"></span><span class="chip" id="phaseChip">Adaptation</span></div>
+        <div class="week" id="weekStrip"></div>
+        <p class="brief" id="phaseText" style="margin-top:12px"></p>
+    </div>
+</section>
 
-                <div class="exercise-detail" style="margin-bottom: 15px;">
-                    <div class="exercise-name">
-                        <span>Protocole actuel</span>
-                    </div>
-                    <div class="exercise-params">
-                        <div class="param">
-                            <span class="param-label">Séries</span>
-                            <span class="param-value" id="protocolSets">5</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Travail</span>
-                            <span class="param-value" id="protocolWork">7s</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Repos</span>
-                            <span class="param-value" id="protocolRest">53s</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Total</span>
-                            <span class="param-value" id="protocolTotal">5min</span>
-                        </div>
-                    </div>
-                    <div class="exercise-notes" id="protocolNotes">
-                        Suspension passive (bras tendus), prise choisie. Ajouter poids si trop facile (ceinture + poids).
-                    </div>
-                </div>
-                
-                <div class="timer-container">
-                    <div class="timer-display ready" id="timer">7</div>
-                    <div class="timer-phase" id="phase">Prêt à démarrer</div>
-                    
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress"></div>
-                    </div>
-                    
-                    <div class="timer-controls">
-                        <button class="btn btn-primary" onclick="startFingerTimer()" id="startBtn">▶ Démarrer</button>
-                        <button class="btn btn-secondary" onclick="stopFingerTimer()">⏹ Stop</button>
-                        <button class="btn btn-outline" onclick="resetFingerTimer()">↺ Reset</button>
-                    </div>
-                </div>
-                
-                <div class="detail-section">
-                    <div class="detail-title">Prescription du coach</div>
-                    <div id="fingerAdvice" style="font-size: 0.85em; color: var(--text-muted); line-height: 1.7;"></div>
-                </div>
+<!-- ================= SEMAINE ================= -->
+<section id="v-week" class="hidden">
+    <div class="card">
+        <div class="card-head">
+            <span class="card-title">Semaine</span>
+            <span class="spacer"></span>
+            <span class="chip on" id="phaseChip2">Adaptation</span>
+        </div>
+        <div class="week" id="weekStrip2"></div>
+        <div class="wk" id="wkPicker"></div>
+    </div>
+
+    <div class="card" id="dayCard"></div>
+</section>
+
+<!-- ================= MUR ================= -->
+<section id="v-wall" class="hidden">
+    <div class="card">
+        <div class="card-head"><span class="card-title">Ajouter une voie</span></div>
+        <input id="fName" placeholder="Nom ou numéro de la voie">
+        <div class="grid2" style="margin-top:8px">
+            <select id="fGrade"></select>
+            <select id="fProfile">
+                <option value="Verticale">Verticale</option>
+                <option value="Dévers">Dévers</option>
+                <option value="Dalle">Dalle</option>
+                <option value="Toit">Toit</option>
+            </select>
+        </div>
+        <div class="choice" style="margin-top:8px" id="fStatus">
+            <button data-s="flash" class="on">Flash</button>
+            <button data-s="work">Work</button>
+            <button data-s="fail">Chute</button>
+        </div>
+        <input id="fNote" placeholder="Note (ex : crux au 3e clip)" style="margin-top:8px">
+        <button class="btn btn-primary btn-block" style="margin-top:10px" onclick="addRoute()">Ajouter</button>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <span class="card-title">Journal</span>
+            <span class="spacer"></span>
+            <button class="x" onclick="clearRoutes()" title="Tout effacer">✕</button>
+        </div>
+        <div id="routeList"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><span class="card-title">Note de séance</span></div>
+        <textarea id="wallNote" placeholder="Ressenti, fatigue, douleurs, réussites..."></textarea>
+        <button class="btn btn-dark btn-block" style="margin-top:10px" onclick="saveNote('mur','wallNote')">Enregistrer</button>
+    </div>
+</section>
+
+<!-- ================= FORCE ================= -->
+<section id="v-force" class="hidden">
+    <div class="seg" style="margin:14px 0 2px">
+        <button class="on" data-f="finger" onclick="setForce('finger')">🖐️ Doigts</button>
+        <button data-f="rings" onclick="setForce('rings')">💪 Anneaux</button>
+    </div>
+
+    <div id="force-finger">
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Protocole</span>
+                <span class="spacer"></span>
+                <span class="chip on" id="fingerChip">15mm</span>
             </div>
-            
-            <div class="card">
-                <div class="card-title" style="margin-bottom: 10px;">Notes fingerboard</div>
-                <textarea class="note-input" id="fingerNote" placeholder="Ressenti doigts, prise utilisée, poids ajouté, douleurs éventuelles..."></textarea>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('fingerboard', 'fingerNote')">Sauvegarder</button>
+            <div class="grid-m">
+                <div class="stat"><div class="v" id="pSets">5</div><div class="l">Séries</div></div>
+                <div class="stat"><div class="v" id="pWork">7s</div><div class="l">Travail</div></div>
+                <div class="stat"><div class="v" id="pRest">53s</div><div class="l">Repos</div></div>
+                <div class="stat"><div class="v" id="pTotal">5min</div><div class="l">Total</div></div>
+            </div>
+            <div class="timer" style="margin-top:12px">
+                <div class="val ready" id="fTimer">7</div>
+                <div class="ph" id="fPhase">Prêt</div>
+                <div class="bar"><i id="fBar"></i></div>
+                <div class="btn-row" style="justify-content:center">
+                    <button class="btn btn-primary" id="fStart" onclick="startFinger()">Démarrer</button>
+                    <button class="btn btn-dark" onclick="stopFinger()">Stop</button>
+                </div>
             </div>
         </div>
-
-        <!-- ANNEAUX TAB -->
-        <div id="rings" class="tab-content hidden">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">💪 Anneaux - Force générale</span>
-                    <span class="badge badge-warning" id="ringsDurBadge">30 min</span>
-                </div>
-                
-                <div class="coach-box" id="ringsAdvice" style="margin-top: 0; margin-bottom: 15px;"></div>
-
-                <div class="exercise-detail">
-                    <div class="exercise-name">
-                        <span>1. Tractions lestées</span>
-                        <span class="badge badge-primary" id="ringsPull">5×5</span>
-                    </div>
-                    <div class="exercise-params">
-                        <div class="param">
-                            <span class="param-label">Repos</span>
-                            <span class="param-value">2-3 min</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Tempo</span>
-                            <span class="param-value">Explosif montée</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Descente</span>
-                            <span class="param-value">Lente (3s)</span>
-                        </div>
-                    </div>
-                    <div class="exercise-notes">
-                        Ajouter du poids si 5 reps faciles (sac à dos avec livres). Dernière rep doit être difficile mais propre.
-                    </div>
-                </div>
-
-                <div class="exercise-detail" style="border-left-color: var(--warning);">
-                    <div class="exercise-name">
-                        <span>2. Dips aux anneaux</span>
-                        <span class="badge badge-warning" id="ringsDips">4×8</span>
-                    </div>
-                    <div class="exercise-params">
-                        <div class="param">
-                            <span class="param-label">Amplitude</span>
-                            <span class="param-value">Complète</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Coudes</span>
-                            <span class="param-value">Proche corps</span>
-                        </div>
-                    </div>
-                    <div class="exercise-notes">
-                        Si trop dur : pieds au sol (assistance). Si trop facile : jambes tendues devant ou lest.
-                    </div>
-                </div>
-
-                <div class="exercise-detail" style="border-left-color: var(--info);">
-                    <div class="exercise-name">
-                        <span>3. Rows (tirage horizontal)</span>
-                        <span class="badge badge-info" id="ringsRow">4×10</span>
-                    </div>
-                    <div class="exercise-params">
-                        <div class="param">
-                            <span class="param-label">Position</span>
-                            <span class="param-value">Corps gainé</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Difficulté</span>
-                            <span class="param-value">Inclinaison</span>
-                        </div>
-                    </div>
-                    <div class="exercise-notes">
-                        Plus tu recules les pieds, plus c'est dur. Tirer les coudes vers les hanches, pas vers la poitrine.
-                    </div>
-                </div>
-
-                <div class="exercise-detail" style="border-left-color: var(--primary);">
-                    <div class="exercise-name">
-                        <span>4. Gainage dynamique</span>
-                        <span class="badge badge-primary" id="ringsCore">3×30s</span>
-                    </div>
-                    <div class="exercise-params">
-                        <div class="param">
-                            <span class="param-label">Exercice</span>
-                            <span class="param-value">Hollow body</span>
-                        </div>
-                        <div class="param">
-                            <span class="param-label">Ou</span>
-                            <span class="param-value">Leg raises</span>
-                        </div>
-                    </div>
-                    <div class="exercise-notes">
-                        Gainage profond, pas juste les abdos. Important pour la tension corporelle en dévers.
-                    </div>
-                </div>
-
-                <div class="timer-container" style="margin-top: 20px;">
-                    <div class="timer-display work" id="ringTimer">30:00</div>
-                    <div class="timer-phase">Temps total de séance</div>
-                    
-                    <div class="timer-controls">
-                        <button class="btn btn-primary" onclick="startRingTimer()">▶ Démarrer</button>
-                        <button class="btn btn-secondary" onclick="stopRingTimer()">⏹ Stop</button>
-                        <button class="btn btn-outline" onclick="resetRingTimer()">↺ Reset</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-title" style="margin-bottom: 10px;">Notes anneaux</div>
-                <textarea class="note-input" id="ringsNote" placeholder="Poids utilisé, reps réelles, difficulté ressentie..."></textarea>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveNote('anneaux', 'ringsNote')">Sauvegarder</button>
-            </div>
+        <div class="card">
+            <div class="card-head"><span class="card-title">Prescription</span></div>
+            <p class="brief" id="fingerText"></p>
         </div>
+    </div>
 
-        <!-- ANALYTICS TAB -->
-        <div id="analytics" class="tab-content hidden">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">📊 Progression 12 semaines</span>
-                </div>
-                
-                <div class="week-selector" id="weekSelector"></div>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value" id="currentWeekDisplay">1</div>
-                        <div class="metric-label">Semaine actuelle</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" id="weekPhase" style="font-size: 1.2em; color: var(--info);">Adaptation</div>
-                        <div class="metric-label">Phase</div>
-                    </div>
-                </div>
-                
-                <div class="detail-section">
-                    <div class="detail-title">Objectifs de la phase</div>
-                    <div id="phaseGoals" style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
-                        Semaines 1-4 : Consolidation technique, identification des faiblesses sur 6c, adaptation des doigts au fingerboard.
-                    </div>
-                </div>
+    <div id="force-rings" class="hidden">
+        <div class="card">
+            <div class="card-head">
+                <span class="card-title">Anneaux</span>
+                <span class="spacer"></span>
+                <span class="chip" id="ringsChip">30 min</span>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Statistiques de grimpe</span>
-                </div>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value" id="totalRoutes">0</div>
-                        <div class="metric-label">Voies tracées</div>
-                    </div>
-                    <div class="metric-card">
-<div class="metric-value" id="flashRate">0%</div>
-                            <div class="metric-label" id="flashRateLabel">Taux de flash 6c</div>
-                    </div>
-                </div>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value" id="totalSessions">0</div>
-                        <div class="metric-label">Séances total</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" id="thisWeekSessions">0</div>
-                        <div class="metric-label">Cette semaine</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Historique récent</span>
-                </div>
-                <div id="historyList" style="max-height: 400px; overflow-y: auto;">
-                    <p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune donnée</p>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">⚠️ Santé des doigts</span>
-                </div>
-                <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
-                    <strong>Signes d'alerte :</strong><br>
-                    • Douleur vive dans un doigt (tendon) = arrêt immédiat<br>
-                    • Douleur articulaire persistante = 1 semaine de repos<br>
-                    • Raideur matinale normale, mais doit disparaître en 10 min<br><br>
-                    <strong>Règle d'or :</strong> Mieux vaut 2 semaines de repos que 6 mois de blessure.
+            <div class="list" id="ringsList"></div>
+            <div class="timer" style="margin-top:12px">
+                <div class="val work" id="rTimer">30:00</div>
+                <div class="ph">Temps total de séance</div>
+                <div class="btn-row" style="justify-content:center">
+                    <button class="btn btn-primary" onclick="startRings()">Démarrer</button>
+                    <button class="btn btn-dark" onclick="stopRings()">Stop</button>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <!-- Rest Timer Floating -->
-    <div class="rest-timer hidden" id="restTimer" onclick="toggleRestTimer()">
-        <span id="restTimerDisplay">3:00</span>
+<!-- ================= BILAN ================= -->
+<section id="v-stats" class="hidden">
+    <div class="card">
+        <div class="card-head"><span class="card-title">Progression</span><span class="spacer"></span><span class="chip on" id="phaseChip3">Adaptation</span></div>
+        <div class="grid-m">
+            <div class="stat"><div class="v" id="stWeek">1</div><div class="l">Semaine</div></div>
+            <div class="stat"><div class="v" id="stPhase">Adaptation</div><div class="l">Phase</div></div>
+        </div>
+        <p class="brief" id="stGoals" style="margin-top:12px"></p>
     </div>
 
-    <script>
-        // ===== State =====
-        let currentTab = 'plan';
-        let currentWeek = 1;
-        let level = 5;              // 1..9, 5 = 6c
-        let fingerTimer = null;
-        let ringTimer = null;
-        let restTimerInterval = null;
-        let restTimeLeft = 180;
+    <div class="card">
+        <div class="card-head"><span class="card-title">Statistiques</span></div>
+        <div class="grid-m">
+            <div class="stat"><div class="v" id="stRoutes">0</div><div class="l">Voies</div></div>
+            <div class="stat"><div class="v" id="stFlash">0%</div><div class="l" id="stFlashLbl">Flash 6c</div></div>
+            <div class="stat"><div class="v" id="stSessions">0</div><div class="l">Séances</div></div>
+            <div class="stat"><div class="v" id="stWeekSessions">0</div><div class="l">Cette semaine</div></div>
+        </div>
+    </div>
 
-        // ===== Cotations =====
-        const GRADES = ['4a', '4+', '5a', '5+', '5b', '6a', '6b', '6c', '6d', '7a', '7b', '7c', '7d', '8a'];
-        const BASE_GRADE = '6c';
-        const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-        const HOLD_LABELS = { '20mm': '20mm (jugs)', '15mm': '15mm (medium)', '10mm': '10mm (small)', '8mm': '8mm (micro)' };
+    <div class="card">
+        <div class="card-head"><span class="card-title">Historique</span></div>
+        <div id="historyList"></div>
+    </div>
 
-        function shiftGrade(grade, delta) {
-            const i = GRADES.indexOf(grade);
-            const from = i < 0 ? GRADES.indexOf(BASE_GRADE) : i;
-            return GRADES[Math.max(0, Math.min(GRADES.length - 1, from + delta))];
+    <div class="card warn">
+        <div class="card-head"><span class="card-title">Santé des doigts</span></div>
+        <p><strong>Stop immédiat</strong> si douleur vive dans un doigt (tendon).<br>
+        <strong>1 semaine de repos</strong> si douleur articulaire persistante.<br>
+        <strong>Normal</strong> : raideur matinale qui disparaît en 10 minutes.<br><br>
+        Mieux vaut 2 semaines de repos que 6 mois de blessure.</p>
+    </div>
+</section>
+
+<div class="rest hidden" id="restTimer" onclick="toggleRest()"><span id="restVal">3:00</span></div>
+
+<nav class="tabbar">
+    <button class="on" data-v="today" onclick="go('today')"><b>☀️</b>Auj.</button>
+    <button data-v="week" onclick="go('week')"><b>🗓️</b>Semaine</button>
+    <button data-v="wall" onclick="go('wall')"><b>🏔️</b>Mur</button>
+    <button data-v="force" onclick="go('force')"><b>💪</b>Force</button>
+    <button data-v="stats" onclick="go('stats')"><b>📊</b>Bilan</button>
+</nav>
+
+<script>
+/* =================== ÉTAT =================== */
+let view = 'today';
+let level = 5;          // 1..9, 5 = 6c
+let currentWeek = 1;
+let currentDay = new Date().getDay() || 7;
+let forceTab = 'finger';
+let fingerRun = null, ringRun = null, restRun = null;
+let restLeft = 180;
+
+/* =================== ÉCHELLE =================== */
+const GRADES = ['4a','4b','4c','5a','5b','5c','6a','6b','6c','7a','7b','7c','8a'];
+const BASE = '6c';
+const HOLD = { '20mm':'20mm — gros', '15mm':'15mm — moyen', '10mm':'10mm — petit', '8mm':'8mm — micro' };
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const todayIdx = () => new Date().getDay() || 7;
+
+function g(delta) {
+    const i = GRADES.indexOf(BASE) + delta;
+    return GRADES[Math.max(0, Math.min(GRADES.length - 1, i))];
+}
+
+function setLevel(v) {
+    level = Math.max(1, Math.min(9, parseInt(v, 10) || 5));
+    store('climbingLevel', level);
+    render();
+}
+
+/* =================== NIVEAU =================== */
+function cfg() {
+    const d = level - 5;
+    const hold = d <= -3 ? '20mm' : d <= -1 ? '15mm' : d >= 2 ? '10mm' : '15mm';
+    return {
+        d,
+        grade: g(d),
+        up: g(d + 1),
+        cruise: g(d - 1),
+        easy: g(d - 2),
+        vol: d <= -3 ? 2 : d <= -1 ? 3 : d >= 3 ? 6 : 4,
+        tries: d <= -1 ? 5 : d >= 2 ? 3 : 4,
+        hold,
+        holdLabel: HOLD[hold],
+        lest: d <= 0 ? 'Poids du corps' : d >= 3 ? '+10 à +15 kg' : '+5 kg',
+        charge: d <= -3 ? 'très légère' : d <= -1 ? 'modérée' : d >= 3 ? 'maximale' : 'élevée',
+        ringSets: 3 + Math.max(0, d)
+    };
+}
+
+/* =================== PROGRAMME =================== */
+const PHASES = {
+    '1-4': {
+        name: 'Adaptation',
+        text: c => `Consolider la technique sur ${c.grade}, repérer tes points faibles, habituer tes doigts au fingerboard. Volume modéré, intensité progressive.`
+    },
+    '5-8': {
+        name: 'Intensification',
+        text: c => `Monter la force qui tient ${c.grade} : lest au fingerboard et travail ciblé sur ton profil le plus faible (dévers ou dalle d'après ton journal).`
+    },
+    '9-12': {
+        name: 'Conversion',
+        text: c => `Transformer la force en performance : flasher des ${c.grade}, repos plus courts, enchaînements.`
+    }
+};
+const phase = () => currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
+const deload = () => currentWeek % 4 === 0;
+const vol = c => deload() ? Math.max(2, c.vol - 2) : c.vol;
+
+function fingerSets() { return Math.max(2, cfg().d >= 3 ? 6 : 5) - (deload() ? 1 : 0); }
+function fingerWork() { return phase() === '9-12' ? 5 : 7; }
+function fingerRest() { return phase() === '9-12' ? 55 : 53; }
+
+const PLAN = [
+    {
+        d: 'Lun', icon: '🖐️', name: 'Force de doigts', kind: 'force', view: 'force',
+        brief: c => `Les doigts récupèrent en 48 h : on construit la force aujourd'hui pour l'exploiter jeudi et samedi. Objectif ${c.grade} : ${c.holdLabel.toLowerCase()}, ${c.lest.toLowerCase()}.`,
+        items: c => [
+            { t: 'Mise en route des doigts', d: '10 min', p: [['Séries','2'],['Travail','5s'],['Repos','55s']],
+              n: 'Suspens bras tendus, tempo lent. On réveille le tendon avant de charger, et on ne prend jamais à deux doigts si ça tire.' },
+            { t: 'Protocole fingerboard', d: fingerSets() + ' × ' + fingerWork() + 's', p: [['Prise', c.holdLabel],['Lest', c.lest]],
+              n: 'Tu termines chaque série avec la même qualité que la première. Si la suspension se déforme, la série est finie.' },
+            { t: 'Main et avant-bras', d: '8 min', p: [['Exercices','Front pulls'],['Séries','3 × 15 s']],
+              n: 'Poignets ouverts, jamais de flexion. Étirement 30 s par doigt à la fin.' }
+        ]
+    },
+    {
+        d: 'Mar', icon: '🏔️', name: 'Technique et lecture', kind: 'mur',
+        brief: c => `Séance de qualité, pas de puissance : rien de plus rapide que ce que tu contrôles. Le programme travaille ${c.easy} et ${c.grade}.`,
+        items: c => [
+            { t: 'Échauffement progressif', d: '20 min', p: [['Intensité','50-60 %'],['Cotation', c.easy + ' → ' + c.cruise]],
+              n: 'Deux voies en lead ou moulinette, mouvements fluides, respiration contrôlée, étirements dynamiques entre chaque voie.' },
+            { t: 'Lecture de voie au sol', d: '30 min', p: [['Cotation', c.grade],['Voies', vol(c) + 1],['Repos','5 min']],
+              n: 'Cinq minutes de lecture (beta, clips, repos), puis grimpe en tête même si tu tombes. Note les crux et les types de prises.' },
+            { t: 'Grimpe lente', d: '20 min', p: [['Cotation', c.cruise],['Voies','2'],['Tempo','2× plus lent']],
+              n: 'Chaque mouvement dure 4 à 6 secondes. Contrôle total, pas de momentum, placement des pieds avant de tirer.' },
+            { t: 'Flash propre (silent feet)', d: '15 min', p: [['Cotation', c.easy],['Critère','Pieds silencieux']],
+              n: 'Si tu touches une prise du pied puis la déplaces, ça compte comme un échec : tu recommences la voie.' }
+        ]
+    },
+    {
+        d: 'Mer', icon: '☀️', name: 'Récupération active', kind: 'recup',
+        brief: () => "C'est une séance, pas une pause. Tendons et système nerveux récupèrent ici : c'est ce qui fabrique les progrès de jeudi.",
+        items: () => [
+            { t: 'Mobilité hanches et épaules', d: '20 min', p: [['Exercices','90/90, cercles'],['Séries','2 × 8']],
+              n: "Insistance sur la rotation interne d'épaule et la mobilité de hanche : c'est là que se perd la puissance sur dévers et sur dalle." },
+            { t: 'Préhension douce', d: '10 min', p: [['Type','Main ouverte'],['Suspension','Aucune']],
+              n: 'Mains ouvertes sur les volumes, doigts relâchés. On garde le tendon souple sans jamais le charger.' },
+            { t: 'Marche', d: '30 min', p: [['Rythme','Zone 1'],['Test','Tu peux parler']],
+              n: 'Suffisant pour faire monter le volume sans taxer les tendons.' }
+        ]
+    },
+    {
+        d: 'Jeu', icon: '🏔️', name: 'Performance et flash', kind: 'mur',
+        brief: c => `Jour de vérité : objectif flash ${c.grade} en ${c.tries} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`,
+        items: c => [
+            { t: 'Activation', d: '15 min', p: [['Progression', c.easy + ' → ' + c.cruise + ' → ' + c.grade]],
+              n: 'Dernière voie à allure soutenue mais contrôlée. C\'est ici que tu prépares le mental pour les essais.' },
+            { t: 'Essais flash', d: '45 min', p: [['Cotation', c.grade],['Voies', vol(c)],['Repos','10 min']],
+              n: 'Une tentative par voie, sur des profils différents : verticale, dévers, dalle, toit. Note où et pourquoi tu échoues.' },
+            { t: 'Work ciblé', d: '30 min', p: [['Méthode','Par séquences'],['Reps','3-4 par crux']],
+              n: 'Prends la voie qui t\'a le plus accroché et travaille les passages difficiles en partant de la prise juste avant le crux.' },
+            { t: 'Volume pump', d: '20 min', p: [['Cotation', c.cruise],['Voies', vol(c)],['Repos','3 min max']],
+              n: 'Enchaînement pour l\'endurance de force. Dernière voie difficile mais terminable : pump gérable, jamais de rupture.' }
+        ]
+    },
+    {
+        d: 'Ven', icon: '💪', name: 'Anneaux et gainage', kind: 'force', view: 'force',
+        brief: c => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${c.ringSets} séries par exercice, la qualité avant la charge.`,
+        items: c => [
+            { t: 'Tractions lestées', d: '12 min', p: [['Séries', ringsPull()],['Repos','2-3 min']],
+              n: 'Montée explosive, descente lente sur 3 secondes. Tu ajoutes du poids seulement si toutes les reps sont propres.' },
+            { t: 'Dips aux anneaux', d: '8 min', p: [['Séries', ringsDips()],['Coudes','Près du corps']],
+              n: 'Trop dur : pieds au sol. Trop facile : jambes tendues devant ou anneaux lestés.' },
+            { t: 'Rows (tirage horizontal)', d: '8 min', p: [['Séries', ringsRow()],['Position','Corps gainé']],
+              n: 'Plus tu recules les pieds, plus c\'est dur. Tu tires les coudes vers les hanches, pas vers la poitrine.' },
+            { t: 'Gainage dynamique', d: '5 min', p: [['Séries', ringsCore()],['Exercice','Hollow body']],
+              n: 'Gainage profond, pas juste des abdos. C\'est la tension corporelle qui te fait tenir en dévers.' }
+        ]
+    },
+    {
+        d: 'Sam', icon: '🏔️', name: 'Volume et endurance', kind: 'mur',
+        brief: c => `Dernière séance de la semaine : tu enchaînes, tu ne craques pas. On travaille la résistance à la fatigue, pas la force maximale.`,
+        items: c => [
+            { t: 'Endurance', d: '30 min', p: [['Cotation', c.cruise],['Voies', vol(c) + 1],['Repos','4 min']],
+              n: 'Rythme régulier, respiration par le nez. Tu dois pouvoir parler entre deux voies.' },
+            { t: 'Circuits de coordination', d: '20 min', p: [['Cotation', c.easy],['Passages','5'],['Repos','90 s']],
+              n: 'Enchaînements sur dévers ou sur dalle : on rappelle la précision quand la force est basse.' },
+            { t: 'Longue voie', d: '1', p: [['Cotation', c.cruise],['Repos','8 min avant']],
+              n: 'Si tu tombes, la voie est trop dure aujourd\'hui. C\'est une donnée, pas un échec.' }
+        ]
+    },
+    {
+        d: 'Dim', icon: '😴', name: 'Repos complet', kind: 'repos',
+        brief: () => 'Le repos fait partie du programme. Si tes doigts restent raides au réveil au-delà de 10 minutes, allonge la semaine : ne supprime pas le repos.',
+        items: () => [
+            { t: 'Marche tranquille', d: '20 min', p: [['Objectif','Circulation']],
+              n: 'Pas de grimpe, pas de musculation. Juste du mouvement.' },
+            { t: 'Sommeil', d: '8 h', p: [['Récupération','Tendons, système nerveux']],
+              n: 'C\'est pendant ces heures que le fingerboard se transforme en force sur le mur.' }
+        ]
+    }
+];
+
+function ringsPull() { return ringSets() + ' × 5'; }
+function ringsDips() { return ringSets() + ' × 8'; }
+function ringsRow() { return ringSets() + ' × 10'; }
+function ringsCore() { return deload() ? '2 × 30 s' : '3 × 30 s'; }
+function ringSets() { return Math.max(2, cfg().ringSets - (deload() ? 1 : 0)); }
+function ringsMinutes() { return deload() ? 25 : 30 + Math.max(0, cfg().d) * 3; }
+
+/* =================== STOCKAGE =================== */
+function store(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function load(k, fallback) {
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+}
+
+/* =================== NAVIGATION =================== */
+function go(v) {
+    view = v;
+    ['today','week','wall','force','stats'].forEach(name => {
+        document.getElementById('v-' + name).classList.toggle('hidden', name !== v);
+    });
+    document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    if (v === 'stats') renderStats();
+    window.scrollTo({ top: 0 });
+}
+
+function setForce(f) {
+    forceTab = f;
+    document.getElementById('force-finger').classList.toggle('hidden', f !== 'finger');
+    document.getElementById('force-rings').classList.toggle('hidden', f !== 'rings');
+    document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+    if (f === 'rings') resetRings();
+}
+
+/* =================== RENDU =================== */
+function render() {
+    const c = cfg();
+    const ph = PHASES[phase()];
+
+    document.getElementById('hdrGrade').textContent = c.grade;
+    document.getElementById('lvlGrade').textContent = c.grade;
+    document.getElementById('lvlRange').value = level;
+    document.getElementById('lvlWord').textContent = 'charge ' + c.charge;
+    document.getElementById('hdrWeek').textContent = currentWeek;
+    ['phaseChip','phaseChip2','phaseChip3'].forEach(id => { document.getElementById(id).textContent = ph.name; });
+
+    document.getElementById('coachLine').innerHTML =
+        `Tu travailles <b>${c.grade}</b> : échauffement ${c.easy}, rythme ${c.cruise}` +
+        (c.up === c.grade ? '' : ', au-dessus ' + c.up) + '.<br>' +
+        `${c.vol} voies par séance de mur, ${c.tries} essais le jeudi, doigts ${c.holdLabel.toLowerCase()} avec ${c.lest.toLowerCase()}.<br>` +
+        `<b>${ph.name}</b> — ${deload() ? 'semaine de décharge, volume réduit.' : 'charge ' + c.charge + '.'}`;
+    document.getElementById('phaseText').textContent = ph.text(c);
+    document.getElementById('stGoals').textContent = ph.text(c);
+
+    renderToday();
+    renderWeekStrip();
+    renderDay();
+    renderFinger();
+    renderRings();
+    syncGradeSelect();
+}
+
+function renderToday() {
+    const c = cfg();
+    const day = PLAN[currentDay - 1];
+    const items = day.items(c);
+    const done = checks();
+    const isToday = currentDay === todayIdx();
+
+    document.getElementById('todayDate').textContent = isToday
+        ? new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+        : DAYS[currentDay - 1];
+    document.getElementById('todayTitle').textContent = day.icon + ' ' + day.name;
+    document.getElementById('todaySub').textContent = 'Semaine ' + currentWeek + ' · ' + PHASES[phase()].name + ' · ' + c.grade;
+    document.getElementById('todayBrief').innerHTML = day.brief(c);
+    document.getElementById('todayList').innerHTML = listHtml(items, done);
+    const pct = items.length ? Math.round(done.length / items.length * 100) : 0;
+    document.getElementById('todayPct').textContent = pct + ' %';
+    document.getElementById('todayDone').textContent = pct === 100 ? 'Séance terminée ✓' : 'Marquer la séance terminée';
+}
+
+function listHtml(items, done) {
+    return items.map((it, i) => `
+        <div class="item ${done.includes(i) ? 'done' : ''}">
+            <button class="tick" onclick="toggleItem(${i})">✓</button>
+            <div class="item-b">
+                <div class="item-t">${it.t}</div>
+                <div class="item-d">${it.d}</div>
+                <div class="item-p">${it.p.map(p => `<span class="pill">${p[0]} <b>${p[1]}</b></span>`).join('')}</div>
+                <div class="item-n">${it.n}</div>
+            </div>
+        </div>`).join('');
+}
+
+function renderWeekStrip() {
+    const colors = { mur: 'var(--lime)', force: 'var(--violet)', recup: 'var(--sky)', repos: 'var(--line)' };
+    const strip = from => PLAN.map((day, i) => {
+        const n = i + 1;
+        const cls = ['day'];
+        if (n === currentDay) cls.push('on');
+        if (n === todayIdx()) cls.push('today');
+        const done = dayDone(n);
+        return `<button class="${cls.join(' ')}" onclick="pickDay(${n},'${from}')">${day.d}
+            <span class="dot" style="background:${colors[day.kind]}"></span>
+            <span class="check">${done ? '✓' : ''}</span></button>`;
+    }).join('');
+    document.getElementById('weekStrip').innerHTML = strip('today');
+    document.getElementById('weekStrip2').innerHTML = strip('week');
+
+    const picker = document.getElementById('wkPicker');
+    if (!picker.children.length) {
+        for (let i = 1; i <= 12; i++) {
+            const b = document.createElement('button');
+            b.textContent = i;
+            b.onclick = () => { currentWeek = i; store('climbingWeek', i); render(); };
+            picker.appendChild(b);
         }
+    }
+    [...picker.children].forEach((b, i) => b.classList.toggle('on', i + 1 === currentWeek));
+}
 
-        function setLevel(v) {
-            level = Math.max(1, Math.min(9, parseInt(v, 10) || 5));
-            localStorage.setItem('climbingLevel', level);
-            render();
-        }
+function renderDay() {
+    const c = cfg();
+    const day = PLAN[currentDay - 1];
+    document.getElementById('dayCard').innerHTML = `
+        <div class="card-head">
+            <span class="card-title">${DAYS[currentDay - 1]} ${day.icon}</span>
+            <span class="spacer"></span>
+            <span class="chip">${day.name}</span>
+        </div>
+        <p class="brief">${day.brief(c)}</p>
+        <div class="list" style="margin-top:12px">${listHtml(day.items(c), checks(currentDay))}</div>`;
+}
 
-        // Le niveau pilote tout : cotation, volume, prise, lest, intensité
-        function levelCfg() {
-            const d = level - 5;
-            const hold = d <= -3 ? '20mm' : d <= -1 ? '15mm' : d >= 2 ? '10mm' : '15mm';
-            return {
-                d,
-                grade: shiftGrade(BASE_GRADE, d),
-                above: shiftGrade(BASE_GRADE, d + 1),
-                cruise: shiftGrade(BASE_GRADE, d - 1),
-                easy: shiftGrade(BASE_GRADE, d - 2),
-                warm: shiftGrade(BASE_GRADE, d - 2),
-                volume: d <= -3 ? 2 : d <= -1 ? 3 : d >= 3 ? 6 : 4,
-                attempts: d <= -1 ? 5 : d >= 2 ? 3 : 4,
-                hold,
-                holdLabel: HOLD_LABELS[hold],
-                lest: d <= 0 ? 'Corps, suspension active' : d >= 3 ? '+10 à +15 kg' : '+5 kg',
-                intensity: d <= -3 ? 'très facile' : d <= -1 ? 'modérée' : d >= 3 ? 'maximale' : 'élevée',
-                ringSets: 3 + Math.max(0, d)
-            };
-        }
+function pickDay(n, from) {
+    currentDay = n;
+    renderToday();
+    renderWeekStrip();
+    renderDay();
+    if (from === 'week') return;
+    go('today');
+}
 
-        const phases = {
-            '1-4': { name: 'Adaptation', goals: (c) => `Consolidation technique sur ${c.grade}, identification de tes points faibles, adaptation des doigts au fingerboard. Volume modéré, intensité progressive.` },
-            '5-8': { name: 'Intensification', goals: (c) => `Force maximale pour tenir ${c.grade}. Lest au fingerboard, travail ciblé sur les profils faibles (dévers ou dalle selon tes résultats).` },
-            '9-12': { name: 'Conversion', goals: (c) => `Transfert de force vers la performance : flasher des ${c.grade}, repos plus courts, enchaînements.` }
-        };
+function renderFinger() {
+    const c = cfg();
+    document.getElementById('fingerChip').textContent = c.hold;
+    document.getElementById('pSets').textContent = fingerSets();
+    document.getElementById('pWork').textContent = fingerWork() + 's';
+    document.getElementById('pRest').textContent = fingerRest() + 's';
+    document.getElementById('pTotal').textContent = Math.ceil(fingerSets() * (fingerWork() + fingerRest()) / 60) + ' min';
+    if (!fingerRun) document.getElementById('fTimer').textContent = fingerWork();
 
-        function phaseKey() { return currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12'; }
-        function isDeload() { return currentWeek % 4 === 0; }               // S4, S8, S12 : semaines de décharge
-        function weekVolume(cfg) { return isDeload() ? Math.max(2, cfg.volume - 2) : cfg.volume; }
-        function ringsPresets(cfg) {
-            const s = Math.max(2, cfg.ringSets - (isDeload() ? 1 : 0));
-            return { sets: s, pull: s + '×5', dips: s + '×8', row: s + '×10', core: isDeload() ? '2×30s' : '3×30s', minutes: (isDeload() ? 25 : 30 + Math.max(0, cfg.d) * 3) };
-        }
-        function fingerProtocol() {
-            const cfg = levelCfg();
-            const base = phaseKey() === '9-12' ? { work: 5, rest: 55 } : { work: 7, rest: 53 };
-            return {
-                sets: Math.max(2, cfg.d >= 3 ? 6 : 5) - (isDeload() ? 1 : 0),
-                work: base.work,
-                rest: base.rest,
-                note: `Prise ${cfg.holdLabel} · ${cfg.lest}.`
-            };
-        }
+    document.getElementById('fingerText').innerHTML =
+        `<b>${PHASES[phase()].name}</b> — semaine ${currentWeek}${deload() ? ' (décharge)' : ''}.<br>` +
+        `${fingerSets()} séries de ${fingerWork()} s en ${c.holdLabel}, ${c.lest.toLowerCase()}.<br>` +
+        (phase() === '9-12'
+            ? 'On raccourcit le travail : on cherche la qualité de suspension, pas le temps.'
+            : 'Format classique : beaucoup de repos, une suspension impeccable par série.') +
+        '<br>Règle : tu arrêtes la série quand la suspension se déforme, pas quand le chrono sonne.';
+}
 
-        // ===== Plan de la semaine (7 jours) =====
-        const COL = { p: 'var(--primary)', w: 'var(--warning)', i: 'var(--info)', a: 'var(--accent)' };
-        const BADGE = { p: 'badge-primary', w: 'badge-warning', i: 'badge-info', a: 'badge-accent' };
+function renderRings() {
+    const c = cfg();
+    document.getElementById('ringsChip').textContent = ringsMinutes() + ' min';
+    document.getElementById('ringsList').innerHTML = PLAN[4].items(c).map(it => `
+        <div class="item">
+            <div class="item-b">
+                <div class="item-t">${it.t}</div>
+                <div class="item-d">${it.d}</div>
+                <div class="item-p">${it.p.map(p => `<span class="pill">${p[0]} <b>${p[1]}</b></span>`).join('')}</div>
+                <div class="item-n">${it.n}</div>
+            </div>
+        </div>`).join('');
+    resetRings();
+}
 
-        function ex(name, dur, color, params, notes) {
-            return { name, dur, color, badge: BADGE[color], params, notes };
-        }
+function syncGradeSelect() {
+    document.getElementById('fGrade').innerHTML = GRADES
+        .map(v => `<option value="${v}"${v === cfg().grade ? ' selected' : ''}>${v}</option>`).join('');
+}
 
-        const PLAN = [
-            {
-                short: 'Lun', icon: '🖐️', title: 'Force de doigts', tab: 'finger',
-                brief: (c) => `Les doigts récupèrent en 48-72 h. On construit la force aujourd'hui pour l'exploiter sur le mur jeudi et samedi. Objectif ${c.grade} : <b>${c.lest}</b>, prise ${c.holdLabel}.`,
-                build: (c, v, f) => [
-                    ex('1. Mise en route des doigts', '10 min', 'p', { Séries: '2', Travail: '5s', Repos: '55s', Prise: '20mm' },
-                        'Suspens bras tendus, tempo lent. On réveille le tendon avant de charger. Zéro prise à deux doigts si ça tire.'),
-                    ex('2. Protocole fingerboard', '≈ ' + Math.ceil(f.sets * (f.work + f.rest) / 60) + ' min', 'a',
-                        { Séries: f.sets, Travail: f.work + 's', Repos: f.rest + 's', Prise: c.holdLabel, Lest: c.lest },
-                        f.note + ' Suspension passive (bras tendus), poignets neutres. Tu dois finir chaque série avec la même qualité que la première.'),
-                    ex('3. Main / avant-bras', '8 min', 'i', { Exercices: 'Front pulls', 'Séries': '3×15s', Charge: 'Corps' },
-                        'Poignets ouverts, jamais de flexion. Trois séries de contraction isométrique à la fin, puis étirement 30 s par doigt.')
-                ]
-            },
-            {
-                short: 'Mar', icon: '🏔️', title: 'Mur : technique & lecture', tab: null,
-                brief: () => 'Séance de qualité, pas de puissance. Objectif : ne rien faire de plus vite que ce que tu contrôles. Trace tes voies dans le journal plus bas.',
-                build: (c, v) => [
-                    ex('1. Échauffement progressif', '20 min', 'p', { Intensité: '50-60%', Cotation: c.warm + ' → ' + c.easy, Focus: 'Mobilité' },
-                        '2 voies en lead ou moulinette. Mouvements fluides, respiration contrôlée, étirements dynamiques entre chaque voie.'),
-                    ex('2. Lecture de voie (ground up)', '30 min', 'w', { Cotation: c.grade, Voies: v + 1, Repos: '5 min' },
-                        'Pour chaque voie : 5 min de lecture au sol (beta, clips, repos), puis grimpe en tête même si tu tombes. Note les crux et les types de prises.'),
-                    ex('3. Grimpe lente (tempo 2x)', '20 min', 'i', { Cotation: c.cruise, Voies: 2, Vitesse: '2x lent' },
-                        'Chaque mouvement dure 4-6 s. Contrôle total, pas de momentum, placement des pieds avant de tirer.'),
-                    ex('4. Flash clean (silent feet)', '15 min', 'p', { Cotation: c.easy, Objectif: 'Flash parfait', Critère: 'Silent feet' },
-                        'Si tu touches une prise du pied puis la déplaces, ça compte comme un échec : recommence la voie.')
-                ]
-            },
-            {
-                short: 'Mer', icon: '🛌', title: 'Récupération active', tab: null,
-                brief: () => 'C\'est une séance, pas une pause. Tendons, fascia et système nerveux récupèrent ici — c\'est ce qui fabrique les progrès du jeudi.',
-                build: (c, v) => [
-                    ex('1. Mobilité hanches & épaules', '20 min', 'i', { Exercices: '90/90, cercles', Séries: '2×8', Respiration: 'Lente' },
-                        'Insistance sur la rotation interne d\'épaule et la mobilité de hanche : c\'est là que se perd la puissance sur dévers et dalle.'),
-                    ex('2. Préhension douce', '10 min', 'p', { Type: 'Open hand', Charge: 'Corps', Suspension: 'Aucune' },
-                        'Mains ouvertes sur volumes, doigts relâchés. Aucune suspension ni traction : on garde le tendon souple sans le solliciter.'),
-                    ex('3. Marche / cardio zone 1', '30 min', 'w', { Intensité: 'Zone 1', Test: 'Tu peux parler' },
-                        'Suffisant pour faire monter le volume sans taxer les tendons.')
-                ]
-            },
-            {
-                short: 'Jeu', icon: '⚡', title: 'Mur : performance & flash', tab: null,
-                brief: (c) => `Jour de vérité : objectif flash ${c.grade} sur ${c.attempts} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`,
-                build: (c, v) => [
-                    ex('1. Activation', '15 min', 'p', { Progression: c.warm + ' → ' + c.easy + ' → ' + c.cruise, Intensité: 'Croissante' },
-                        'Dernière voie à allure soutenue mais contrôlée. Prépare le mental pour les essais.'),
-                    ex('2. Essais flash', '45 min', 'a', { Cotation: c.grade, Voies: v, Profil: 'Varier', Repos: '10 min' },
-                        'Une tentative par voie. Si échec, note où et pourquoi. Vise des profils différents : verticale (endurance), dévers (puissance), dalle (technique), toit (force).'),
-                    ex('3. Work ciblé', '30 min', 'w', { Méthode: 'Par séquences', Focus: 'Crux identifiés', Reps: '3-4 par crux' },
-                        'Prends la voie qui t\'a le plus accroché et travaille les mouvements difficiles en partant de la prise juste avant le crux.'),
-                    ex('4. Volume pump', '20 min', 'p', { Cotation: c.cruise, Voies: v, Repos: '3 min max' },
-                        'Enchaînement pour l\'endurance de force. Dernière voie difficile mais terminable : pump gérable, jamais de rupture.')
-                ]
-            },
-            {
-                short: 'Ven', icon: '💪', title: 'Anneaux & gainage', tab: 'rings',
-                brief: (c) => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${c.ringSets} séries par exercice, qualité avant charge.`,
-                build: (c, v, f, r) => [
-                    ex('1. Tractions lestées', '≈ 12 min', 'p', { Séries: r.pull, Repos: '2-3 min', Tempo: 'Montée explosive' },
-                        'Descente lente (3 s). Ajoute du poids si toutes les reps sont faciles : la dernière doit être difficile mais propre.'),
-                    ex('2. Dips aux anneaux', '≈ 8 min', 'w', { Séries: r.dips, Amplitude: 'Complète', Coudes: 'Près du corps' },
-                        'Trop dur : pieds au sol. Trop facile : jambes tendues devant ou lest.'),
-                    ex('3. Rows (tirage horizontal)', '≈ 8 min', 'i', { Séries: r.row, Position: 'Corps gainé', Difficulté: 'Incliné' },
-                        'Plus tu recules les pieds, plus c\'est dur. Tire les coudes vers les hanches, pas vers la poitrine.'),
-                    ex('4. Gainage dynamique', '≈ 5 min', 'p', { Séries: r.core, Exercice: 'Hollow body', 'ou': 'Leg raises' },
-                        'Gainage profond, pas juste les abdos. C\'est la tension corporelle qui te fait tenir en dévers.')
-                ]
-            },
-            {
-                short: 'Sam', icon: '🏔️', title: 'Mur : volume & endurance', tab: null,
-                brief: (c) => 'Dernière séance de la semaine : tu enchaînes, tu ne craques pas. On travaille la resistance à la fatigue, pas la force maximale.',
-                build: (c, v) => [
-                    ex('1. Endurance', '30 min', 'p', { Cotation: c.cruise, Voies: v + 1, Repos: '4 min' },
-                        'Grimpe régulière, respiration nasale. Tu dois pouvoir discuter entre deux voies.'),
-                    ex('2. Circuits de coordination', '20 min', 'i', { Cotation: c.easy, Passages: '5', Repos: '90 s' },
-                        'Enchaînement de prises en dévers ou sur dalle : on rappelle la précision quand la force est basse.'),
-                    ex('3. Longue voie', '1', 'w', { Cotation: c.cruise, Repos: '8 min avant', Objectif: 'Terminer' },
-                        'Si tu tombes, la voie est trop dure aujourd\'hui : c\'est une donnée, pas un échec.')
-                ]
-            },
-            {
-                short: 'Dim', icon: '😴', title: 'Repos complet', tab: null,
-                brief: () => 'Le repos fait partie du programme. Si tes doigts sont raides au réveil au-delà de 10 minutes, allonge la semaine : ne supprime pas le repos.',
-                build: () => [
-                    ex('1. Marche tranquille', '20 min', 'i', { Rythme: 'Tranquille', Objectif: 'Circulation' },
-                        'Pas de grimpe, pas de musculation. Juste du mouvement.'),
-                    ex('2. Sommeil', '8 h', 'p', { Objectif: '8 h', Récupération: 'Tendons / système nerveux' },
-                        'C\'est pendant ces heures que le fingerboard se transforme en force sur le mur.')
-                ]
-            }
-        ];
+/* =================== SÉANCES FAITES =================== */
+// Coches par semaine de programme et par jour : la semaine 3 est indépendante de la semaine 2
+const checkKey = d => 'climbingChecks_' + currentWeek + '_' + (d || currentDay);
+function checks(day) { return load(checkKey(day), []); }
+function dayDone(n) { return checks(n).length >= PLAN[n - 1].items(cfg()).length; }
 
-        let currentDay = (new Date().getDay() || 7);
+function toggleItem(i) {
+    const list = checks();
+    const at = list.indexOf(i);
+    if (at >= 0) list.splice(at, 1); else list.push(i);
+    store(checkKey(), list);
+    renderToday();
+    renderWeekStrip();
+    renderDay();
+}
 
-        // ===== Init =====
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedWeek = parseInt(localStorage.getItem('climbingWeek') || '1', 10);
-            currentWeek = savedWeek >= 1 && savedWeek <= 12 ? savedWeek : 1;
-            const savedLevel = parseInt(localStorage.getItem('climbingLevel') || '5', 10);
-            level = savedLevel >= 1 && savedLevel <= 9 ? savedLevel : 5;
-            initWeekSelector();
-            loadRoutes();
-            loadHistory();
-            updateStats();
-        });
+function finishDay() {
+    const items = PLAN[currentDay - 1].items(cfg());
+    if (checks().length >= items.length) return;
+    store(checkKey(), items.map((_, i) => i));
+    const sessions = load('climbingSessions', []);
+    sessions.unshift({ date: new Date().toISOString(), type: PLAN[currentDay - 1].kind, note: DAYS[currentDay - 1] + ' · ' + PLAN[currentDay - 1].name, week: currentWeek });
+    store('climbingSessions', sessions.slice(0, 60));
+    renderToday();
+    renderWeekStrip();
+    renderDay();
+    buzz();
+}
 
-        // Tab management
-        function showTab(tabName, btn) {
-            currentTab = tabName;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.remove('hidden');
-            if (!btn) btn = [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes("'" + tabName + "'"));
-            if (btn) btn.classList.add('active');
-        }
+/* =================== COACH =================== */
+function askCoach() {
+    const routes = load('climbingRoutes', []);
+    const c = cfg();
+    if (routes.length < 3) {
+        alert('Trace au moins 3 voies dans l\'onglet Mur et je te donne un avis.');
+        return;
+    }
+    const recent = routes.slice(0, 10);
+    const flash = recent.filter(r => r.status === 'flash').length / recent.length;
+    const atGrade = recent.filter(r => r.grade === c.grade).length;
+    const pct = Math.round(flash * 100) + ' %';
+    let delta = 0;
+    let why;
+    if (flash >= 0.7 && atGrade >= 3) {
+        delta = 1;
+        why = pct + ' de flash et ' + atGrade + ' voies à ' + c.grade + ' : tu as de la marge, on monte.';
+    } else if (flash <= 0.15) {
+        delta = -1;
+        why = pct + ' de flash seulement : on redescend d\'un cran pour consolider avant d\'attaquer la suite.';
+    } else {
+        why = pct + ' de flash : on garde ' + c.grade + ' et on consolide avant de monter.';
+    }
+    if (delta) setLevel(level + delta);
+    alert('Coach : ' + why + (delta ? '\nNouveau niveau : ' + cfg().grade + '.' : ''));
+}
 
-        // ===== Rendu =====
-        function render() {
-            renderLevel();
-            renderDays();
-            renderDay();
-            updateFingerProtocol();
-            updateRings();
-            syncRouteGrades();
-        }
+/* =================== JOURNAL DE VOIES =================== */
+let routeStatus = 'flash';
 
-        function renderLevel() {
-            const cfg = levelCfg();
-            document.getElementById('levelBadge').textContent = cfg.grade;
-            document.getElementById('hdrGrade').textContent = cfg.grade;
-            document.getElementById('levelLabel').textContent = cfg.grade + ' · ' + cfg.intensity;
-            document.getElementById('levelRange').value = level;
-            document.getElementById('coachBox').innerHTML =
-                `<b>Cotation cible : ${cfg.grade}</b> — échauffement ${cfg.warm}, vitesse ${cfg.cruise}, au-dessus ${cfg.above}<br>` +
-                `${cfg.volume} voies par séance de mur · ${cfg.attempts} essais par voie le jeudi · fingerboard prise ${cfg.holdLabel} · ${cfg.lest}<br>` +
-                `Charge : <b>${cfg.intensity}</b>. ${phaseKey() === '1-4' ? 'Phase adaptation : on construit la base.' : phaseKey() === '5-8' ? 'Phase intensification : on monte la force.' : 'Phase conversion : on transforme la force en performance.'}` +
-                (isDeload() ? '<br><b>Semaine de décharge</b> : volume réduit, qualité maximale.' : '');
-        }
+function addRoute() {
+    const name = document.getElementById('fName').value.trim();
+    if (!name) return;
+    const routes = load('climbingRoutes', []);
+    routes.unshift({
+        name,
+        grade: document.getElementById('fGrade').value,
+        profile: document.getElementById('fProfile').value,
+        status: routeStatus,
+        notes: document.getElementById('fNote').value.trim(),
+        session: DAYS[currentDay - 1],
+        week: currentWeek,
+        date: new Date().toISOString()
+    });
+    store('climbingRoutes', routes.slice(0, 80));
+    document.getElementById('fName').value = '';
+    document.getElementById('fNote').value = '';
+    renderRoutes();
+    renderStats();
+}
 
-        function renderDays() {
-            const today = new Date().getDay() || 7;
-            document.getElementById('daySelector').innerHTML = PLAN.map((day, i) => {
-                const n = i + 1;
-                const cls = ['day-btn'];
-                if (n === currentDay) cls.push('active');
-                if (n === today) cls.push('today');
-                return `<button class="${cls.join(' ')}" onclick="selectDay(${n})">${day.short}</button>`;
-            }).join('');
-            const badge = document.getElementById('planWeekBadge');
-            badge.textContent = 'S' + currentWeek + (isDeload() ? ' · Décharge' : '');
-            badge.className = 'badge ' + (isDeload() ? 'badge-warning' : 'badge-primary');
-        }
+function renderRoutes() {
+    const routes = load('climbingRoutes', []);
+    const list = document.getElementById('routeList');
+    if (!routes.length) { list.innerHTML = '<p class="empty">Aucune voie tracée pour l\'instant.</p>'; return; }
+    list.innerHTML = routes.slice(0, 12).map((r, i) => `
+        <div class="route">
+            <span class="g">${esc(r.grade)}</span>
+            <span class="n">${esc(r.name)}${r.notes ? ' — <span class="m">' + esc(r.notes) + '</span>' : ''}</span>
+            <span class="tag tag-${r.status}">${r.status === 'flash' ? 'Flash' : r.status === 'work' ? 'Work' : 'Chute'}</span>
+            <button class="x" onclick="delRoute(${i})">✕</button>
+        </div>`).join('');
+}
 
-        function selectDay(n) {
-            currentDay = n;
-            renderDays();
-            renderDay();
-        }
+function delRoute(i) {
+    const routes = load('climbingRoutes', []);
+    routes.splice(i, 1);
+    store('climbingRoutes', routes);
+    renderRoutes();
+    renderStats();
+}
 
-        function exerciseHtml(e) {
-            const params = Object.keys(e.params).map(k =>
-                `<div class="param"><span class="param-label">${k}</span><span class="param-value">${e.params[k]}</span></div>`).join('');
-            return `<div class="exercise-detail" style="border-left-color: ${e.color};">
-                <div class="exercise-name"><span>${e.name}</span><span class="badge ${e.badge}">${e.dur}</span></div>
-                <div class="exercise-params">${params}</div>
-                <div class="exercise-notes">${e.notes}</div>
-            </div>`;
-        }
+function clearRoutes() {
+    if (!confirm('Effacer toutes les voies tracées ?')) return;
+    store('climbingRoutes', []);
+    renderRoutes();
+    renderStats();
+}
 
-        function renderDay() {
-            const cfg = levelCfg();
-            const deload = isDeload();
-            const day = PLAN[currentDay - 1];
-            const exercises = day.build(cfg, weekVolume(cfg), fingerProtocol(), ringsPresets(cfg));
-            document.getElementById('dayPlan').innerHTML = `
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">${day.icon} ${DAYS[currentDay - 1]} — ${day.title}</span>
-                    <span class="badge ${deload ? 'badge-warning' : 'badge-primary'}">${deload ? 'Décharge' : 'Semaine ' + currentWeek}</span>
-                </div>
-                <div class="coach-box">${day.brief(cfg)}</div>
-                <div class="detail-section">
-                    <div class="detail-title">Structure détaillée</div>
-                    ${exercises.map(exerciseHtml).join('')}
-                </div>
-                ${day.tab ? `<button class="btn btn-outline" style="width: 100%; margin-top: 12px;" onclick="showTab('${day.tab}')">Ouvrir la séance ↗</button>` : ''}
-            </div>`;
-        }
+document.getElementById('fStatus').addEventListener('click', e => {
+    const b = e.target.closest('button[data-s]');
+    if (!b) return;
+    routeStatus = b.dataset.s;
+    document.querySelectorAll('#fStatus button').forEach(x => x.classList.toggle('on', x === b));
+});
 
-        // Avis coach basé sur les voies réellement tracées
-        function coachSuggest() {
-            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
-            const cfg = levelCfg();
-            if (routes.length < 3) {
-                alert('Pas encore assez de données : trace au moins 3 voies (journal plus bas) et je te donne un avis.');
+/* =================== NOTES / HISTORIQUE =================== */
+function saveNote(type, id) {
+    const note = document.getElementById(id).value.trim();
+    if (!note) return;
+    const sessions = load('climbingSessions', []);
+    sessions.unshift({ date: new Date().toISOString(), type, note, week: currentWeek });
+    store('climbingSessions', sessions.slice(0, 60));
+    document.getElementById(id).value = '';
+    renderHistory();
+    renderStats();
+}
+
+function renderHistory() {
+    const sessions = load('climbingSessions', []);
+    const box = document.getElementById('historyList');
+    if (!sessions.length) { box.innerHTML = '<p class="empty">Rien à signaler pour l\'instant.</p>'; return; }
+    const icons = { mur: '🏔️', force: '💪', fingerboard: '🖐️', anneaux: '💪', repos: '😴' };
+    box.innerHTML = sessions.slice(0, 12).map(s => `
+        <div class="hist">
+            <div class="d">${icons[s.type] || '•'} ${new Date(s.date).toLocaleDateString('fr-FR')} · semaine ${s.week}</div>
+            ${esc(s.note)}
+        </div>`).join('');
+}
+
+function renderStats() {
+    const routes = load('climbingRoutes', []);
+    const sessions = load('climbingSessions', []);
+    const c = cfg();
+
+    document.getElementById('stWeek').textContent = currentWeek;
+    document.getElementById('stPhase').textContent = PHASES[phase()].name;
+    document.getElementById('stRoutes').textContent = routes.length;
+    document.getElementById('stSessions').textContent = sessions.length;
+
+    const atGrade = routes.filter(r => r.grade === c.grade);
+    const rate = atGrade.length ? Math.round(atGrade.filter(r => r.status === 'flash').length / atGrade.length * 100) : 0;
+    document.getElementById('stFlash').textContent = rate + ' %';
+    document.getElementById('stFlashLbl').textContent = 'Flash ' + c.grade;
+
+    const start = new Date(); start.setDate(start.getDate() - ((start.getDay() || 7) - 1));
+    document.getElementById('stWeekSessions').textContent =
+        sessions.filter(s => new Date(s.date) >= start).length;
+
+    renderHistory();
+}
+
+/* =================== CHRONOS =================== */
+function tick(fn, ms) {
+    ms = ms || 1000;
+    let next = Date.now() + ms;
+    let id = setTimeout(step, ms);
+    function step() {
+        const drift = Date.now() - next;
+        fn();
+        next += ms;
+        id = setTimeout(step, Math.max(0, ms - drift));
+    }
+    return { stop() { clearTimeout(id); id = null; } };
+}
+
+function startFinger() {
+    if (fingerRun) return;
+    const work = fingerWork(), rest = fingerRest(), total = fingerSets();
+    let set = 1, on = true, left = work;
+    fingerRun = tick(() => {
+        left--;
+        if (left <= 0) {
+            if (on) { on = false; left = rest; buzz(); showRest(); }
+            else if (set >= total) {
+                stopFinger();
+                document.getElementById('fPhase').textContent = 'Séance terminée';
+                document.getElementById('fBar').style.width = '100%';
+                finishDay();
                 return;
-            }
-            const recent = routes.slice(0, 10);
-            const flashRate = recent.filter(r => r.status === 'flash').length / recent.length;
-            const atGrade = recent.filter(r => r.grade === cfg.grade).length;
-            let delta = 0;
-            let why = Math.round(flashRate * 100) + '% de flash sur tes 10 dernières voies :';
-            if (flashRate >= 0.7 && atGrade >= 3) {
-                delta = 1;
-                why += ' tu as de la marge, on monte.';
-            } else if (flashRate <= 0.15) {
-                delta = -1;
-                why += ' ça ne passe pas encore, on redescend d\'un cran pour consolider.';
-            } else {
-                why += ' niveau gardé, on consolide avant de monter.';
-            }
-            if (delta) setLevel(level + delta);
-            alert('Coach : ' + why + (delta ? '\nNouveau niveau : ' + levelCfg().grade + '.' : ''));
+            } else { set++; on = true; left = work; buzz(); hideRest(); }
         }
+        const el = document.getElementById('fTimer');
+        el.textContent = left;
+        el.className = 'val ' + (on ? 'work' : 'rest');
+        document.getElementById('fPhase').textContent = on ? 'Travail — série ' + set + '/' + total : 'Repos — série ' + set + '/' + total;
+        document.getElementById('fBar').style.width = Math.round((1 - left / (on ? work : rest)) * 100) + '%';
+    });
+    document.getElementById('fStart').disabled = true;
+}
 
-        // Week Selector
-        function initWeekSelector() {
-            const container = document.getElementById('weekSelector');
-            for (let i = 1; i <= 12; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'week-btn';
-                btn.textContent = i;
-                btn.onclick = () => selectWeek(i);
-                container.appendChild(btn);
-            }
-            selectWeek(currentWeek);
-        }
+function stopFinger() {
+    if (fingerRun) { fingerRun.stop(); fingerRun = null; }
+    document.getElementById('fStart').disabled = false;
+    hideRest();
+}
 
-        function selectWeek(week) {
-            currentWeek = week;
-            localStorage.setItem('climbingWeek', week);
-            document.querySelectorAll('.week-btn').forEach((btn, idx) => {
-                btn.classList.toggle('active', idx + 1 === week);
-            });
-            document.getElementById('currentWeekDisplay').textContent = week;
-            document.getElementById('weekPhase').textContent = phases[phaseKey()].name;
-            document.getElementById('phaseGoals').textContent = phases[phaseKey()].goals(levelCfg());
-            document.getElementById('fingerWeekBadge').textContent = 'S' + phaseKey();
-            render();
-        }
+function startRings() {
+    if (ringRun) return;
+    let left = ringMinutes();
+    document.getElementById('rTimer').textContent = fmt(left);
+    ringRun = tick(() => {
+        left--;
+        if (left <= 0) { stopRings(); buzz(); return; }
+        document.getElementById('rTimer').textContent = fmt(left);
+    });
+}
 
-        // Fingerboard Protocol
-        function updateFingerProtocol() {
-            const protocol = fingerProtocol();
-            document.getElementById('protocolSets').textContent = protocol.sets;
-            document.getElementById('protocolWork').textContent = protocol.work + 's';
-            document.getElementById('protocolRest').textContent = protocol.rest + 's';
-            document.getElementById('protocolTotal').textContent = Math.ceil((protocol.sets * (protocol.work + protocol.rest)) / 60) + 'min';
-            document.getElementById('protocolNotes').textContent = protocol.note;
-            if (!fingerTimer) document.getElementById('timer').textContent = protocol.work;
+function stopRings() { if (ringRun) { ringRun.stop(); ringRun = null; } }
+function ringMinutes() { return ringsMinutes() * 60; }
+function resetRings() {
+    stopRings();
+    const el = document.getElementById('rTimer');
+    if (el) el.textContent = fmt(ringMinutes());
+}
+function fmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
-            const cfg = levelCfg();
-            document.getElementById('fingerAdvice').innerHTML =
-                `<strong>Phase :</strong> ${phases[phaseKey()].name} (S${phaseKey()})<br>` +
-                `<strong>Semaine ${currentWeek} :</strong> ${isDeload() ? 'décharge — on enlève une série et on ne rajoute rien.' : 'progression normale.'}<br>` +
-                `<strong>Prescription :</strong> ${protocol.sets}× ${protocol.work}s / ${protocol.rest}s en ${cfg.holdLabel}, ${cfg.lest}<br>` +
-                `<strong>Règle :</strong> arrête la série dès que la suspension se déforme, pas quand le temps est écoulé.`;
+function showRest() {
+    const el = document.getElementById('restTimer');
+    el.classList.remove('hidden');
+    restLeft = 180;
+    paintRest();
+    if (restRun) restRun.stop();
+    restRun = tick(() => { restLeft--; paintRest(); if (restLeft <= 0) { stopRest(); buzz(); } });
+}
+function stopRest() { if (restRun) { restRun.stop(); restRun = null; } }
+function hideRest() { stopRest(); document.getElementById('restTimer').classList.add('hidden'); }
+function paintRest() { document.getElementById('restVal').textContent = fmt(restLeft); }
+function toggleRest() {
+    if (restRun) { stopRest(); return; }
+    if (restLeft <= 0) restLeft = 180;
+    paintRest();
+    restRun = tick(() => { restLeft--; paintRest(); if (restLeft <= 0) { stopRest(); buzz(); } });
+}
+function buzz() { if ('vibrate' in navigator) navigator.vibrate([180, 90, 180]); }
+function esc(s) { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-            const hold = document.getElementById('holdSize');
-            if (hold.value !== cfg.hold) hold.value = cfg.hold;
-        }
+/* =================== DÉMARRAGE =================== */
+const savedWeek = parseInt(load('climbingWeek', 1), 10);
+currentWeek = savedWeek >= 1 && savedWeek <= 12 ? savedWeek : 1;
+const savedLevel = parseInt(load('climbingLevel', 5), 10);
+level = savedLevel >= 1 && savedLevel <= 9 ? savedLevel : 5;
 
-        function updateRings() {
-            const r = ringsPresets(levelCfg());
-            document.getElementById('ringsPull').textContent = r.pull;
-            document.getElementById('ringsDips').textContent = r.dips;
-            document.getElementById('ringsRow').textContent = r.row;
-            document.getElementById('ringsCore').textContent = r.core;
-            document.getElementById('ringsDurBadge').textContent = r.minutes + ' min';
-            document.getElementById('ringsAdvice').innerHTML =
-                `Semaine ${currentWeek} · ${isDeload() ? '<b>décharge</b>' : 'progression'} · intensité ${levelCfg().intensity}<br>` +
-                `Charge : ajoute du poids seulement si toutes les reps sont propres.`;
-            resetRingTimer();
-        }
+render();
+renderRoutes();
+renderStats();
 
-        function syncRouteGrades() {
-            const cfg = levelCfg();
-            document.getElementById('routeGrade').innerHTML = GRADES
-                .map(g => `<option value="${g}"${g === cfg.grade ? ' selected' : ''}>${g}</option>`).join('');
-        }
-        
-        document.getElementById('fingerPhase').addEventListener('change', (e) => {
-            const val = e.target.value;
-            const week = val === '1-4' ? 1 : val === '5-8' ? 5 : 9;
-            selectWeek(week);
-        });
-        
-        // Self-correcting interval (avoids timer drift)
-        function createTick(onTick, interval) {
-            interval = interval || 1000;
-            let expected = Date.now() + interval;
-            let timer = null;
-            const step = () => {
-                const drift = Date.now() - expected;
-                onTick();
-                expected += interval;
-                timer = setTimeout(step, Math.max(0, interval - drift));
-            };
-            timer = setTimeout(step, interval);
-            return {
-                stop: () => { if (timer) { clearTimeout(timer); timer = null; } }
-            };
-        }
-        
-        // Fingerboard Timer
-        function startFingerTimer() {
-            if (fingerTimer) return;
-            
-            const config = fingerProtocol();
-            
-            let currentSet = 1;
-            let isWork = true;
-            let timeLeft = config.work;
-            
-            updateFingerDisplay(timeLeft, isWork, currentSet, config);
-            
-            fingerTimer = createTick(() => {
-                timeLeft--;
-                
-                if (timeLeft <= 0) {
-                    if (isWork) {
-                        // Switch to rest
-                        isWork = false;
-                        timeLeft = config.rest;
-                        vibrate();
-                        showRestTimer();
-                    } else {
-                        // Switch to work or finish
-                        if (currentSet >= config.sets) {
-                            stopFingerTimer();
-                            document.getElementById('phase').textContent = 'Séance terminée ! 🎉';
-                            document.getElementById('timer').className = 'timer-display work';
-                            document.getElementById('progress').style.width = '100%';
-                            saveSession('fingerboard', 'Terminé - ' + document.getElementById('holdSize').value);
-                            return;
-                        }
-                        currentSet++;
-                        isWork = true;
-                        timeLeft = config.work;
-                        vibrate();
-                        hideRestTimer();
-                    }
-                }
-                
-                updateFingerDisplay(timeLeft, isWork, currentSet, config);
-            });
-            
-            document.getElementById('startBtn').disabled = true;
-        }
-        
-        function updateFingerDisplay(time, isWork, set, config) {
-            const timerEl = document.getElementById('timer');
-            timerEl.textContent = time;
-            timerEl.className = 'timer-display ' + (isWork ? 'work' : 'rest');
-            
-            document.getElementById('phase').textContent = isWork ? 
-                `Travail - Série ${set}/${config.sets}` : 
-                `Repos - Série ${set}/${config.sets} terminée`;
-            
-            const total = isWork ? config.work : config.rest;
-            const progress = ((total - time) / total) * 100;
-            document.getElementById('progress').style.width = progress + '%';
-        }
-        
-        function stopFingerTimer() {
-            if (fingerTimer) { fingerTimer.stop(); fingerTimer = null; }
-            document.getElementById('startBtn').disabled = false;
-            hideRestTimer();
-        }
-        
-        function resetFingerTimer() {
-            stopFingerTimer();
-            updateFingerProtocol();
-            document.getElementById('phase').textContent = 'Prêt à démarrer';
-            document.getElementById('timer').className = 'timer-display ready';
-            document.getElementById('progress').style.width = '0%';
-        }
-        
-        // Rings Timer
-        function ringSeconds() { return ringsPresets(levelCfg()).minutes * 60; }
-        let ringTimeLeft = ringSeconds();
-        
-        function formatTime(totalSeconds) {
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        function startRingTimer() {
-            if (ringTimer) return;
-            ringTimer = createTick(() => {
-                ringTimeLeft--;
-                
-                if (ringTimeLeft <= 0) {
-                    stopRingTimer();
-                    vibrate();
-                    saveSession('anneaux', 'Séance anneaux terminée - ' + levelCfg().grade);
-                    return;
-                }
-                
-                document.getElementById('ringTimer').textContent = formatTime(ringTimeLeft);
-            });
-        }
-        
-        function stopRingTimer() {
-            if (ringTimer) { ringTimer.stop(); ringTimer = null; }
-        }
-        
-        function resetRingTimer() {
-            stopRingTimer();
-            ringTimeLeft = ringSeconds();
-            document.getElementById('ringTimer').textContent = formatTime(ringTimeLeft);
-        }
-        
-        // Rest Timer (Floating)
-        function showRestTimer() {
-            const el = document.getElementById('restTimer');
-            el.classList.remove('hidden');
-            el.classList.add('active');
-            startRestTimer(180); // 3 min
-        }
-        
-        function hideRestTimer() {
-            document.getElementById('restTimer').classList.add('hidden');
-            stopRestTimer();
-        }
-        
-        function startRestTimer(seconds) {
-            restTimeLeft = seconds;
-            updateRestDisplay();
-            if (restTimerInterval) stopRestTimer();
-            restTimerInterval = createTick(() => {
-                restTimeLeft--;
-                updateRestDisplay();
-                if (restTimeLeft <= 0) {
-                    stopRestTimer();
-                    vibrate();
-                }
-            });
-        }
-        
-        function stopRestTimer() {
-            if (restTimerInterval) { restTimerInterval.stop(); restTimerInterval = null; }
-        }
-        
-        function updateRestDisplay() {
-            const mins = Math.floor(restTimeLeft / 60);
-            const secs = restTimeLeft % 60;
-            document.getElementById('restTimerDisplay').textContent = 
-                `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        function toggleRestTimer() {
-            if (restTimerInterval) {
-                stopRestTimer();
-            } else {
-                startRestTimer(restTimeLeft);
-            }
-        }
-        
-        // Routes Management
-        function addRoute() {
-            const name = document.getElementById('routeName').value;
-            const grade = document.getElementById('routeGrade').value;
-            const status = document.getElementById('routeStatus').value;
-            const profile = document.getElementById('routeProfile').value;
-            const notes = document.getElementById('routeNotes').value;
-            
-            if (!name.trim()) return;
-            
-            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
-            routes.unshift({
-                name, grade, status, profile, notes,
-                date: new Date().toISOString(),
-                session: DAYS[currentDay - 1],
-                week: currentWeek
-            });
-            localStorage.setItem('climbingRoutes', JSON.stringify(routes.slice(0, 50)));
-            
-            // Clear inputs
-            document.getElementById('routeName').value = '';
-            document.getElementById('routeNotes').value = '';
-            
-            loadRoutes();
-            updateStats();
-        }
-        
-        function loadRoutes() {
-            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
-            const list = document.getElementById('routeList');
-            
-            if (routes.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune voie tracée</p>';
-                return;
-            }
-            
-            list.innerHTML = routes.slice(0, 8).map(r => {
-                const statusClass = r.status === 'flash' ? 'flash' : r.status === 'work' ? 'work' : 'fail';
-                const statusBadge = r.status === 'flash' ? 'status-flash' : r.status === 'work' ? 'status-work' : 'status-fail';
-                const statusText = r.status === 'flash' ? '✓ Flash' : r.status === 'work' ? '◐ Work' : '✗ Chute';
-                
-                return `
-                    <div class="route-item ${statusClass}">
-                        <div class="route-info">
-                            <h4>${escapeHtml(r.name)} <span class="route-grade">${escapeHtml(r.grade)}</span></h4>
-                            <div class="route-meta">
-                                <span>${escapeHtml(r.profile)}</span>
-                                <span>•</span>
-                                <span>${escapeHtml(r.session)}</span>
-                                <span>•</span>
-                                <span>S${escapeHtml(r.week)}</span>
-                            </div>
-                            ${r.notes ? `<div style="font-size: 0.8em; color: var(--text-muted); margin-top: 4px; font-style: italic;">${escapeHtml(r.notes)}</div>` : ''}
-                        </div>
-                        <span class="status-badge ${statusBadge}">${statusText}</span>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        function clearRoutes() {
-            if (confirm('Effacer toutes les voies tracées ?')) {
-                localStorage.removeItem('climbingRoutes');
-                loadRoutes();
-                updateStats();
-            }
-        }
-        
-        // Notes & History
-        function saveNote(type, noteId) {
-            const note = document.getElementById(noteId).value;
-            if (!note.trim()) return;
-            
-            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
-            sessions.unshift({
-                date: new Date().toISOString(),
-                type: type,
-                note: note,
-                week: currentWeek
-            });
-            localStorage.setItem('climbingSessions', JSON.stringify(sessions.slice(0, 50)));
-            document.getElementById(noteId).value = '';
-            loadHistory();
-            updateStats();
-            alert('Note sauvegardée ! ✅');
-        }
-        
-        function saveSession(type, status) {
-            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
-            sessions.unshift({
-                date: new Date().toISOString(),
-                type: type,
-                note: status,
-                week: currentWeek
-            });
-            localStorage.setItem('climbingSessions', JSON.stringify(sessions.slice(0, 50)));
-            loadHistory();
-            updateStats();
-        }
-        
-        function loadHistory() {
-            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
-            const list = document.getElementById('historyList');
-            
-            if (sessions.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Aucune séance enregistrée</p>';
-                return;
-            }
-            
-            const icons = { 'mur': '🏔️', 'fingerboard': '🖐️', 'anneaux': '💪' };
-            
-            list.innerHTML = sessions.slice(0, 15).map(s => `
-                <div style="padding: 15px; background: var(--bg); margin-bottom: 10px; border-radius: 10px; border-left: 3px solid var(--primary);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <strong>${icons[s.type] || '📝'} ${s.type.charAt(0).toUpperCase() + s.type.slice(1)}</strong>
-                        <small style="color: var(--text-muted);">${new Date(s.date).toLocaleDateString('fr-FR')}</small>
-                    </div>
-                    <div style="color: var(--text-muted); font-size: 0.9em; line-height: 1.4;">${escapeHtml(s.note)}</div>
-                    <div style="margin-top: 8px;">
-                        <span class="badge badge-primary">Semaine ${s.week}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function updateStats() {
-            const sessions = JSON.parse(localStorage.getItem('climbingSessions') || '[]');
-            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
-            
-            document.getElementById('totalSessions').textContent = sessions.length;
-            document.getElementById('totalRoutes').textContent = routes.length;
-            
-            // Flash rate sur la cotation cible actuelle
-            const target = levelCfg().grade;
-            const atGrade = routes.filter(r => r.grade === target);
-            const flashed = atGrade.filter(r => r.status === 'flash').length;
-            const rate = atGrade.length > 0 ? Math.round((flashed / atGrade.length) * 100) : 0;
-            document.getElementById('flashRate').textContent = rate + '%';
-            document.getElementById('flashRateLabel').textContent = 'Taux de flash ' + target;
-            
-            // This week (semaine commençant le lundi)
-            const now = new Date();
-            const day = now.getDay() === 0 ? 7 : now.getDay();
-            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (day - 1));
-            const thisWeek = sessions.filter(s => new Date(s.date) >= weekStart).length;
-            document.getElementById('thisWeekSessions').textContent = thisWeek;
-        }
-        
-        // Utilities
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, m => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[m]));
-        }
-        
-        function vibrate() {
-            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-        }
-        
-        // PWA : enregistrement du service worker (offline / installation)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
-            });
-        }
-    </script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
 </body>
 </html>

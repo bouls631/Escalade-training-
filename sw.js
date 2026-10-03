@@ -1,4 +1,4 @@
-const CACHE = 'escalade-pro-v2';
+const CACHE = 'escalade-pro-v3';
 const ASSETS = [
     './',
     './index.html',

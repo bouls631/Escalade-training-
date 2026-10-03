@@ -1,18 +1,17 @@
 # 🧗 Escalade Pro Training
 
-Application web (PWA) de suivi d'entraînement escalade : **niveau réglable de 5+ à 7c**, force, technique et progression sur 12 semaines.
+Application web (PWA) d'entraînement escalade : **niveau réglable de 5b à 8a**, plan jour par jour et suivi de progression sur 12 semaines.
 
 ## Fonctionnalités
 
-- 🎯 **Niveau réglable** — un curseur 5+ → 7c qui pilote tout : cotations, volume de voies, essais par voie, prise du fingerboard, lest aux anneaux
-- 🧠 **Avis du coach** — lit le journal de voies et propose de monter / descendre d'un cran selon le taux de flash
-- 🗓️ **Plan jour par jour** — 7 jours (lundi force de doigts, mardi technique, mercredi récupération, jeudi flash, vendredi anneaux, samedi volume, dimanche repos) avec brief de coach et structure détaillée
+- ◎ **Aujourd'hui** — la séance du jour, son brief de coach et la structure détaillée, avec une checklist et un bouton de validation
+- ▤ **Semaine** — les 7 jours (lundi force de doigts, mardi technique, mercredi récupération, jeudi performance et flash, vendredi anneaux et gainage, samedi volume, dimanche repos) et le réglage de la semaine (1 à 12)
+- 🎯 **Niveau réglable** — un curseur qui pilote tout : cotations, volume de voies, essais par voie, prise du fingerboard, lest, séries aux anneaux
+- 🧠 **Avis du coach** — lit les 10 dernières voies du journal et propose de monter ou de descendre d'un cran selon le taux de flash
+- ▲ **Mur** — journal de voies (cotation, profil, flash/work/chute, note) et note de séance
+- ⚡ **Force** — fingerboard (protocole adapté au niveau et à la phase, chrono travail/repos) et anneaux (séries ajustées, chrono de séance)
+- ◔ **Bilan** — progression 12 semaines, taux de flash sur la cotation cible, historique, alertes santé des doigts
 - 🔄 **Semaines de décharge** — S4, S8 et S12 réduisent automatiquement le volume
-- 📝 **Journal de voies** — cotation, profil, statut flash/work/chute, notes de séance
-- 🖐️ **Fingerboard** — protocole adapté au niveau et à la phase, minuterie travail/repos, prescription écrite
-- 💪 **Anneaux** — séries ajustées au niveau, tractions / dips / rows / gainage, chrono de séance
-- 📊 **Analyse** — progression 12 semaines, taux de flash sur la cotation cible, historique, alertes santé des doigts
-- ⏱️ Minuteurs dérive-compensés, minuterie de repos flottante, vibrations
 - 📱 **PWA** — installable sur téléphone, fonctionne hors-ligne (service worker)
 - 💾 Données stockées dans `localStorage` (aucun serveur requis)
 
