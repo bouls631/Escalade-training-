@@ -123,6 +123,7 @@
         .badge-primary { background: rgba(76, 175, 80, 0.2); color: var(--primary); }
         .badge-warning { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
         .badge-info { background: rgba(33, 150, 243, 0.2); color: var(--info); }
+        .badge-accent { background: rgba(233, 69, 96, 0.2); color: var(--accent); }
         
         /* Timer Styles */
         .timer-container {
@@ -446,6 +447,50 @@
             border-color: var(--primary);
             color: var(--primary);
         }
+
+        /* Level */
+        .level-row { display: flex; align-items: center; gap: 12px; }
+        .level-range { flex: 1; accent-color: var(--primary); height: 30px; }
+        .level-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75em;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .coach-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: var(--bg);
+            border-left: 3px solid var(--info);
+            border-radius: 8px;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .coach-box b { color: var(--text); }
+
+        /* Day selector */
+        .day-selector {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .day-btn {
+            padding: 9px 2px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            color: var(--text-muted);
+            font-size: 0.72em;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .day-btn.today { border-color: var(--info); color: var(--info); }
+        .day-btn.rest { opacity: 0.65; }
+        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
         
         /* Hidden */
         .hidden { display: none !important; }
@@ -463,283 +508,46 @@
     <div class="container">
         <header>
             <h1>🧗 Escalade Pro</h1>
-            <p class="subtitle">Programme 6c - Force & Technique</p>
+<p class="subtitle">Programme <span id="hdrGrade">6c</span> · Force & Technique</p>
         </header>
         
         <div class="tabs">
-            <button class="tab active" onclick="showTab('mur', this)">🏔️ Mur</button>
+            <button class="tab active" onclick="showTab('plan', this)">🗓️ Plan</button>
             <button class="tab" onclick="showTab('finger', this)">🖐️ Finger</button>
             <button class="tab" onclick="showTab('rings', this)">💪 Anneaux</button>
             <button class="tab" onclick="showTab('analytics', this)">📊 Analyse</button>
         </div>
 
-        <!-- MUR TAB - DÉTAILLÉ -->
-        <div id="mur" class="tab-content">
-            <!-- Séance Type Selector -->
+        <!-- PLAN TAB -->
+        <div id="plan" class="tab-content">
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Type de séance</span>
-                    <span class="badge badge-primary" id="murWeekBadge">Semaine 1</span>
+                    <span class="card-title">🎯 Niveau d'entraînement</span>
+                    <span class="badge badge-primary" id="levelBadge">6c</span>
                 </div>
-                
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" style="flex: 1;" onclick="setMurSession('mardi')" id="btnMardi">
-                        📚 Mardi<br><small>Technique</small>
-                    </button>
-                    <button class="btn btn-ghost" style="flex: 1;" onclick="setMurSession('jeudi')" id="btnJeudi">
-                        ⚡ Jeudi<br><small>Performance</small>
-                    </button>
+                <div class="level-row">
+                    <button class="btn btn-small btn-ghost" onclick="setLevel(level - 1)">▼</button>
+                    <input type="range" min="1" max="9" step="1" value="5" id="levelRange" class="level-range" oninput="setLevel(this.value)">
+                    <button class="btn btn-small btn-ghost" onclick="setLevel(level + 1)">▲</button>
                 </div>
+                <div class="level-scale">
+                    <span>5+</span>
+                    <strong id="levelLabel">6c</strong>
+                    <span>7c</span>
+                </div>
+                <div class="coach-box" id="coachBox"></div>
+                <button class="btn btn-outline btn-small" style="width: 100%; margin-top: 10px;" onclick="coachSuggest()">🧠 Demander un avis au coach</button>
             </div>
 
-            <!-- MARDI - Technique Détaillée -->
-            <div id="mardiDetail">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">📚 Mardi - Technique & Lecture</span>
-                        <span class="badge badge-info">19h-22h</span>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <div class="detail-title">Objectifs spécifiques</div>
-                        <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
-                            • Lire les voies 6c avant de grimper (visualisation)<br>
-                            • Grimper lentement (tempo 2x) pour contrôler le mouvement<br>
-                            • Identifier les points de repos et les clips<br>
-                            • Travailler la précision des pieds (silent feet)
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <div class="detail-title">Structure détaillée</div>
-                        
-                        <div class="exercise-detail">
-                            <div class="exercise-name">
-                                <span>1. Échauffement progressif</span>
-                                <span class="badge badge-primary">20 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Intensité</span>
-                                    <span class="param-value">50-60%</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Cotation</span>
-                                    <span class="param-value">5+ à 6a</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Focus</span>
-                                    <span class="param-value">Mobilité</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                2 voies en lead ou moulinette. Mouvements fluides, respiration contrôlée. Étirements dynamiques poignets/épaules entre chaque voie.
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--warning);">
-                            <div class="exercise-name">
-                                <span>2. Lecture de voie (Ground Up)</span>
-                                <span class="badge badge-warning">30 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Cotation</span>
-                                    <span class="param-value">6c</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Essais</span>
-                                    <span class="param-value">3-4 voies</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Repos</span>
-                                    <span class="param-value">5 min</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Pour chaque voie : 5 min de lecture au sol (beta, clips, repos), puis grimpe en tête même si tu tombes. Note les crux et les types de prises.
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--info);">
-                            <div class="exercise-name">
-                                <span>3. Grimpe lente (Tempo Training)</span>
-                                <span class="badge badge-info">20 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Cotation</span>
-                                    <span class="param-value">6b</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Vitesse</span>
-                                    <span class="param-value">2x lent</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Voies</span>
-                                    <span class="param-value">2</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Chaque mouvement dure 4-6 secondes. Contrôle total, pas de momentum. Focus sur le placement précis des pieds avant de tirer.
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--primary);">
-                            <div class="exercise-name">
-                                <span>4. Perfection 6a (Flash Clean)</span>
-                                <span class="badge badge-primary">15 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Cotation</span>
-                                    <span class="param-value">6a</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Objectif</span>
-                                    <span class="param-value">Flash parfait</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Critère</span>
-                                    <span class="param-value">Silent feet</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Grimpe sans faire de bruit avec les pieds. Si tu touches une prise avec le pied puis la déplaces, ça compte comme un échec. Recommence.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <div class="detail-title">Techniques travaillées</div>
-                        <div class="technique-list">
-                            <span class="technique-tag active">Lecture de voie</span>
-                            <span class="technique-tag active">Contrôle du tempo</span>
-                            <span class="technique-tag">Précision pieds</span>
-                            <span class="technique-tag">Gestion du souffle</span>
-                            <span class="technique-tag">Visualisation</span>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🗓️ Plan de la semaine</span>
+                    <span class="badge badge-primary" id="planWeekBadge">S1</span>
                 </div>
+                <div class="day-selector" id="daySelector"></div>
             </div>
 
-            <!-- JEUDI - Performance Détaillée -->
-            <div id="jeudiDetail" class="hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">⚡ Jeudi - Performance & Flash</span>
-                        <span class="badge badge-warning">19h30-22h</span>
-                    </div>
-                    
-                    <div class="detail-section">
-                        <div class="detail-title">Objectifs spécifiques</div>
-                        <div style="font-size: 0.9em; color: var(--text-muted); line-height: 1.6;">
-                            • Flasher des 6c (3 essais max par voie)<br>
-                            • Travailler les séquences difficiles en work<br>
-                            • Développer l'endurance de force (enchaînement)<br>
-                            • Tester la force de doigt acquise au fingerboard
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <div class="detail-title">Structure détaillée</div>
-                        
-                        <div class="exercise-detail">
-                            <div class="exercise-name">
-                                <span>1. Activation</span>
-                                <span class="badge badge-primary">15 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Progression</span>
-                                    <span class="param-value">5+ → 6a → 6b</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Intensité</span>
-                                    <span class="param-value">Croissante</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Monter progressivement en cotation. Dernière voie 6b à allure soutenue mais contrôlée. Préparer le mental pour les essais 6c.
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--accent);">
-                            <div class="exercise-name">
-                                <span>2. Essais Flash 6c</span>
-                                <span class="badge" style="background: rgba(233, 69, 96, 0.2); color: var(--accent);">45 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Voies</span>
-                                    <span class="param-value">3 différentes</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Profils</span>
-                                    <span class="param-value">Varier</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Repos</span>
-                                    <span class="param-value">10 min</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Une tentative par voie (le flash). Si échec, noter où et pourquoi. Choisir : verticale (endurance), dévers (puissance), dalle (technique).
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--warning);">
-                            <div class="exercise-name">
-                                <span>3. Work 6c ciblé</span>
-                                <span class="badge badge-warning">30 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Méthode</span>
-                                    <span class="param-value">Par séquences</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Focus</span>
-                                    <span class="param-value">Crux identifiés</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Sur la voie qui t'a le plus accroché : travaille les mouvements difficiles en partant de la prise juste avant. Répète 3-4 fois jusqu'à fluidité.
-                            </div>
-                        </div>
-
-                        <div class="exercise-detail" style="border-left-color: var(--primary);">
-                            <div class="exercise-name">
-                                <span>4. Volume 6b (Pump)</span>
-                                <span class="badge badge-primary">20 min</span>
-                            </div>
-                            <div class="exercise-params">
-                                <div class="param">
-                                    <span class="param-label">Format</span>
-                                    <span class="param-value">2-3 voies</span>
-                                </div>
-                                <div class="param">
-                                    <span class="param-label">Repos</span>
-                                    <span class="param-value">3 min max</span>
-                                </div>
-                            </div>
-                            <div class="exercise-notes">
-                                Enchaîner les voies 6b pour développer l'endurance de force. Dernière voie doit être difficile à terminer (pump gérable).
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <div class="detail-title">Profils de voies à tester</div>
-                        <div class="technique-list">
-                            <span class="technique-tag">Verticale (endurance)</span>
-                            <span class="technique-tag">Dévers (puissance)</span>
-                            <span class="technique-tag">Dalle (technique)</span>
-                            <span class="technique-tag">Toit (force)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="dayPlan"></div>
 
             <!-- Journal de voies détaillé -->
             <div class="card">
@@ -750,14 +558,7 @@
                 
                 <div class="route-form">
                     <input type="text" id="routeName" placeholder="Nom ou n° voie">
-                    <select id="routeGrade">
-                        <option value="6a">6a</option>
-                        <option value="6b">6b</option>
-                        <option value="6b+">6b+</option>
-                        <option value="6c" selected>6c</option>
-                        <option value="6c+">6c+</option>
-                        <option value="7a">7a</option>
-                    </select>
+                    <select id="routeGrade"></select>
                     <select id="routeStatus">
                         <option value="flash">Flash</option>
                         <option value="work">Work</option>
@@ -859,12 +660,8 @@
                 </div>
                 
                 <div class="detail-section">
-                    <div class="detail-title">Progression de charge</div>
-                    <div style="font-size: 0.85em; color: var(--text-muted);">
-                        <strong>S1-4 :</strong> Poids du corps uniquement<br>
-                        <strong>S5-8 :</strong> +5kg (ceinture/sac)<br>
-                        <strong>S9-12 :</strong> +10-15kg ou prise plus petite
-                    </div>
+                    <div class="detail-title">Prescription du coach</div>
+                    <div id="fingerAdvice" style="font-size: 0.85em; color: var(--text-muted); line-height: 1.7;"></div>
                 </div>
             </div>
             
@@ -880,13 +677,15 @@
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">💪 Anneaux - Force générale</span>
-                    <span class="badge badge-warning">30 min</span>
+                    <span class="badge badge-warning" id="ringsDurBadge">30 min</span>
                 </div>
                 
+                <div class="coach-box" id="ringsAdvice" style="margin-top: 0; margin-bottom: 15px;"></div>
+
                 <div class="exercise-detail">
                     <div class="exercise-name">
                         <span>1. Tractions lestées</span>
-                        <span class="badge badge-primary">5×5</span>
+                        <span class="badge badge-primary" id="ringsPull">5×5</span>
                     </div>
                     <div class="exercise-params">
                         <div class="param">
@@ -910,7 +709,7 @@
                 <div class="exercise-detail" style="border-left-color: var(--warning);">
                     <div class="exercise-name">
                         <span>2. Dips aux anneaux</span>
-                        <span class="badge badge-warning">4×8</span>
+                        <span class="badge badge-warning" id="ringsDips">4×8</span>
                     </div>
                     <div class="exercise-params">
                         <div class="param">
@@ -930,7 +729,7 @@
                 <div class="exercise-detail" style="border-left-color: var(--info);">
                     <div class="exercise-name">
                         <span>3. Rows (tirage horizontal)</span>
-                        <span class="badge badge-info">4×10</span>
+                        <span class="badge badge-info" id="ringsRow">4×10</span>
                     </div>
                     <div class="exercise-params">
                         <div class="param">
@@ -950,7 +749,7 @@
                 <div class="exercise-detail" style="border-left-color: var(--primary);">
                     <div class="exercise-name">
                         <span>4. Gainage dynamique</span>
-                        <span class="badge badge-primary">3×30s</span>
+                        <span class="badge badge-primary" id="ringsCore">3×30s</span>
                     </div>
                     <div class="exercise-params">
                         <div class="param">
@@ -1025,8 +824,8 @@
                         <div class="metric-label">Voies tracées</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value" id="flashRate">0%</div>
-                        <div class="metric-label">Taux de flash 6c</div>
+<div class="metric-value" id="flashRate">0%</div>
+                            <div class="metric-label" id="flashRateLabel">Taux de flash 6c</div>
                     </div>
                 </div>
                 
@@ -1072,63 +871,301 @@
     </div>
 
     <script>
-        // State
-        let currentTab = 'mur';
-        let currentMurSession = 'mardi';
+        // ===== State =====
+        let currentTab = 'plan';
         let currentWeek = 1;
+        let level = 5;              // 1..9, 5 = 6c
         let fingerTimer = null;
         let ringTimer = null;
         let restTimerInterval = null;
-        let restTimeLeft = 180; // 3 min default
-        
-        // Data
+        let restTimeLeft = 180;
+
+        // ===== Cotations =====
+        const GRADES = ['4a', '4+', '5a', '5+', '5b', '6a', '6b', '6c', '6d', '7a', '7b', '7c', '7d', '8a'];
+        const BASE_GRADE = '6c';
+        const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        const HOLD_LABELS = { '20mm': '20mm (jugs)', '15mm': '15mm (medium)', '10mm': '10mm (small)', '8mm': '8mm (micro)' };
+
+        function shiftGrade(grade, delta) {
+            const i = GRADES.indexOf(grade);
+            const from = i < 0 ? GRADES.indexOf(BASE_GRADE) : i;
+            return GRADES[Math.max(0, Math.min(GRADES.length - 1, from + delta))];
+        }
+
+        function setLevel(v) {
+            level = Math.max(1, Math.min(9, parseInt(v, 10) || 5));
+            localStorage.setItem('climbingLevel', level);
+            render();
+        }
+
+        // Le niveau pilote tout : cotation, volume, prise, lest, intensité
+        function levelCfg() {
+            const d = level - 5;
+            const hold = d <= -3 ? '20mm' : d <= -1 ? '15mm' : d >= 2 ? '10mm' : '15mm';
+            return {
+                d,
+                grade: shiftGrade(BASE_GRADE, d),
+                above: shiftGrade(BASE_GRADE, d + 1),
+                cruise: shiftGrade(BASE_GRADE, d - 1),
+                easy: shiftGrade(BASE_GRADE, d - 2),
+                warm: shiftGrade(BASE_GRADE, d - 2),
+                volume: d <= -3 ? 2 : d <= -1 ? 3 : d >= 3 ? 6 : 4,
+                attempts: d <= -1 ? 5 : d >= 2 ? 3 : 4,
+                hold,
+                holdLabel: HOLD_LABELS[hold],
+                lest: d <= 0 ? 'Corps, suspension active' : d >= 3 ? '+10 à +15 kg' : '+5 kg',
+                intensity: d <= -3 ? 'très facile' : d <= -1 ? 'modérée' : d >= 3 ? 'maximale' : 'élevée',
+                ringSets: 3 + Math.max(0, d)
+            };
+        }
+
         const phases = {
-            '1-4': {
-                name: 'Adaptation',
-                goals: 'Consolidation technique, identification des faiblesses sur 6c, adaptation des doigts au fingerboard. Volume modéré, intensité progressive.',
-                finger: { sets: 5, work: 7, rest: 53, note: 'Poids du corps uniquement. Focus sur la qualité de suspension.' }
-            },
-            '5-8': {
-                name: 'Intensification',
-                goals: 'Force maximale. Ajout de lest au fingerboard, travail spécifique des profils faibles (dévers ou dalle selon tes résultats).',
-                finger: { sets: 5, work: 7, rest: 53, note: 'Ajouter +5kg (ceinture ou sac à dos).' }
-            },
-            '9-12': {
-                name: 'Conversion',
-                goals: 'Transfert de force vers la performance. Essais flash 6c, réduction du temps de repos, enchaînements.',
-                finger: { sets: 4, work: 5, rest: 55, note: '+10-15kg ou prise 10mm/8mm selon niveau.' }
-            }
+            '1-4': { name: 'Adaptation', goals: (c) => `Consolidation technique sur ${c.grade}, identification de tes points faibles, adaptation des doigts au fingerboard. Volume modéré, intensité progressive.` },
+            '5-8': { name: 'Intensification', goals: (c) => `Force maximale pour tenir ${c.grade}. Lest au fingerboard, travail ciblé sur les profils faibles (dévers ou dalle selon tes résultats).` },
+            '9-12': { name: 'Conversion', goals: (c) => `Transfert de force vers la performance : flasher des ${c.grade}, repos plus courts, enchaînements.` }
         };
-        
-        // Init
+
+        function phaseKey() { return currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12'; }
+        function isDeload() { return currentWeek % 4 === 0; }               // S4, S8, S12 : semaines de décharge
+        function weekVolume(cfg) { return isDeload() ? Math.max(2, cfg.volume - 2) : cfg.volume; }
+        function ringsPresets(cfg) {
+            const s = Math.max(2, cfg.ringSets - (isDeload() ? 1 : 0));
+            return { sets: s, pull: s + '×5', dips: s + '×8', row: s + '×10', core: isDeload() ? '2×30s' : '3×30s', minutes: (isDeload() ? 25 : 30 + Math.max(0, cfg.d) * 3) };
+        }
+        function fingerProtocol() {
+            const cfg = levelCfg();
+            const base = phaseKey() === '9-12' ? { work: 5, rest: 55 } : { work: 7, rest: 53 };
+            return {
+                sets: Math.max(2, cfg.d >= 3 ? 6 : 5) - (isDeload() ? 1 : 0),
+                work: base.work,
+                rest: base.rest,
+                note: `Prise ${cfg.holdLabel} · ${cfg.lest}.`
+            };
+        }
+
+        // ===== Plan de la semaine (7 jours) =====
+        const COL = { p: 'var(--primary)', w: 'var(--warning)', i: 'var(--info)', a: 'var(--accent)' };
+        const BADGE = { p: 'badge-primary', w: 'badge-warning', i: 'badge-info', a: 'badge-accent' };
+
+        function ex(name, dur, color, params, notes) {
+            return { name, dur, color, badge: BADGE[color], params, notes };
+        }
+
+        const PLAN = [
+            {
+                short: 'Lun', icon: '🖐️', title: 'Force de doigts', tab: 'finger',
+                brief: (c) => `Les doigts récupèrent en 48-72 h. On construit la force aujourd'hui pour l'exploiter sur le mur jeudi et samedi. Objectif ${c.grade} : <b>${c.lest}</b>, prise ${c.holdLabel}.`,
+                build: (c, v, f) => [
+                    ex('1. Mise en route des doigts', '10 min', 'p', { Séries: '2', Travail: '5s', Repos: '55s', Prise: '20mm' },
+                        'Suspens bras tendus, tempo lent. On réveille le tendon avant de charger. Zéro prise à deux doigts si ça tire.'),
+                    ex('2. Protocole fingerboard', '≈ ' + Math.ceil(f.sets * (f.work + f.rest) / 60) + ' min', 'a',
+                        { Séries: f.sets, Travail: f.work + 's', Repos: f.rest + 's', Prise: c.holdLabel, Lest: c.lest },
+                        f.note + ' Suspension passive (bras tendus), poignets neutres. Tu dois finir chaque série avec la même qualité que la première.'),
+                    ex('3. Main / avant-bras', '8 min', 'i', { Exercices: 'Front pulls', 'Séries': '3×15s', Charge: 'Corps' },
+                        'Poignets ouverts, jamais de flexion. Trois séries de contraction isométrique à la fin, puis étirement 30 s par doigt.')
+                ]
+            },
+            {
+                short: 'Mar', icon: '🏔️', title: 'Mur : technique & lecture', tab: null,
+                brief: () => 'Séance de qualité, pas de puissance. Objectif : ne rien faire de plus vite que ce que tu contrôles. Trace tes voies dans le journal plus bas.',
+                build: (c, v) => [
+                    ex('1. Échauffement progressif', '20 min', 'p', { Intensité: '50-60%', Cotation: c.warm + ' → ' + c.easy, Focus: 'Mobilité' },
+                        '2 voies en lead ou moulinette. Mouvements fluides, respiration contrôlée, étirements dynamiques entre chaque voie.'),
+                    ex('2. Lecture de voie (ground up)', '30 min', 'w', { Cotation: c.grade, Voies: v + 1, Repos: '5 min' },
+                        'Pour chaque voie : 5 min de lecture au sol (beta, clips, repos), puis grimpe en tête même si tu tombes. Note les crux et les types de prises.'),
+                    ex('3. Grimpe lente (tempo 2x)', '20 min', 'i', { Cotation: c.cruise, Voies: 2, Vitesse: '2x lent' },
+                        'Chaque mouvement dure 4-6 s. Contrôle total, pas de momentum, placement des pieds avant de tirer.'),
+                    ex('4. Flash clean (silent feet)', '15 min', 'p', { Cotation: c.easy, Objectif: 'Flash parfait', Critère: 'Silent feet' },
+                        'Si tu touches une prise du pied puis la déplaces, ça compte comme un échec : recommence la voie.')
+                ]
+            },
+            {
+                short: 'Mer', icon: '🛌', title: 'Récupération active', tab: null,
+                brief: () => 'C\'est une séance, pas une pause. Tendons, fascia et système nerveux récupèrent ici — c\'est ce qui fabrique les progrès du jeudi.',
+                build: (c, v) => [
+                    ex('1. Mobilité hanches & épaules', '20 min', 'i', { Exercices: '90/90, cercles', Séries: '2×8', Respiration: 'Lente' },
+                        'Insistance sur la rotation interne d\'épaule et la mobilité de hanche : c\'est là que se perd la puissance sur dévers et dalle.'),
+                    ex('2. Préhension douce', '10 min', 'p', { Type: 'Open hand', Charge: 'Corps', Suspension: 'Aucune' },
+                        'Mains ouvertes sur volumes, doigts relâchés. Aucune suspension ni traction : on garde le tendon souple sans le solliciter.'),
+                    ex('3. Marche / cardio zone 1', '30 min', 'w', { Intensité: 'Zone 1', Test: 'Tu peux parler' },
+                        'Suffisant pour faire monter le volume sans taxer les tendons.')
+                ]
+            },
+            {
+                short: 'Jeu', icon: '⚡', title: 'Mur : performance & flash', tab: null,
+                brief: (c) => `Jour de vérité : objectif flash ${c.grade} sur ${c.attempts} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`,
+                build: (c, v) => [
+                    ex('1. Activation', '15 min', 'p', { Progression: c.warm + ' → ' + c.easy + ' → ' + c.cruise, Intensité: 'Croissante' },
+                        'Dernière voie à allure soutenue mais contrôlée. Prépare le mental pour les essais.'),
+                    ex('2. Essais flash', '45 min', 'a', { Cotation: c.grade, Voies: v, Profil: 'Varier', Repos: '10 min' },
+                        'Une tentative par voie. Si échec, note où et pourquoi. Vise des profils différents : verticale (endurance), dévers (puissance), dalle (technique), toit (force).'),
+                    ex('3. Work ciblé', '30 min', 'w', { Méthode: 'Par séquences', Focus: 'Crux identifiés', Reps: '3-4 par crux' },
+                        'Prends la voie qui t\'a le plus accroché et travaille les mouvements difficiles en partant de la prise juste avant le crux.'),
+                    ex('4. Volume pump', '20 min', 'p', { Cotation: c.cruise, Voies: v, Repos: '3 min max' },
+                        'Enchaînement pour l\'endurance de force. Dernière voie difficile mais terminable : pump gérable, jamais de rupture.')
+                ]
+            },
+            {
+                short: 'Ven', icon: '💪', title: 'Anneaux & gainage', tab: 'rings',
+                brief: (c) => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${c.ringSets} séries par exercice, qualité avant charge.`,
+                build: (c, v, f, r) => [
+                    ex('1. Tractions lestées', '≈ 12 min', 'p', { Séries: r.pull, Repos: '2-3 min', Tempo: 'Montée explosive' },
+                        'Descente lente (3 s). Ajoute du poids si toutes les reps sont faciles : la dernière doit être difficile mais propre.'),
+                    ex('2. Dips aux anneaux', '≈ 8 min', 'w', { Séries: r.dips, Amplitude: 'Complète', Coudes: 'Près du corps' },
+                        'Trop dur : pieds au sol. Trop facile : jambes tendues devant ou lest.'),
+                    ex('3. Rows (tirage horizontal)', '≈ 8 min', 'i', { Séries: r.row, Position: 'Corps gainé', Difficulté: 'Incliné' },
+                        'Plus tu recules les pieds, plus c\'est dur. Tire les coudes vers les hanches, pas vers la poitrine.'),
+                    ex('4. Gainage dynamique', '≈ 5 min', 'p', { Séries: r.core, Exercice: 'Hollow body', 'ou': 'Leg raises' },
+                        'Gainage profond, pas juste les abdos. C\'est la tension corporelle qui te fait tenir en dévers.')
+                ]
+            },
+            {
+                short: 'Sam', icon: '🏔️', title: 'Mur : volume & endurance', tab: null,
+                brief: (c) => 'Dernière séance de la semaine : tu enchaînes, tu ne craques pas. On travaille la resistance à la fatigue, pas la force maximale.',
+                build: (c, v) => [
+                    ex('1. Endurance', '30 min', 'p', { Cotation: c.cruise, Voies: v + 1, Repos: '4 min' },
+                        'Grimpe régulière, respiration nasale. Tu dois pouvoir discuter entre deux voies.'),
+                    ex('2. Circuits de coordination', '20 min', 'i', { Cotation: c.easy, Passages: '5', Repos: '90 s' },
+                        'Enchaînement de prises en dévers ou sur dalle : on rappelle la précision quand la force est basse.'),
+                    ex('3. Longue voie', '1', 'w', { Cotation: c.cruise, Repos: '8 min avant', Objectif: 'Terminer' },
+                        'Si tu tombes, la voie est trop dure aujourd\'hui : c\'est une donnée, pas un échec.')
+                ]
+            },
+            {
+                short: 'Dim', icon: '😴', title: 'Repos complet', tab: null,
+                brief: () => 'Le repos fait partie du programme. Si tes doigts sont raides au réveil au-delà de 10 minutes, allonge la semaine : ne supprime pas le repos.',
+                build: () => [
+                    ex('1. Marche tranquille', '20 min', 'i', { Rythme: 'Tranquille', Objectif: 'Circulation' },
+                        'Pas de grimpe, pas de musculation. Juste du mouvement.'),
+                    ex('2. Sommeil', '8 h', 'p', { Objectif: '8 h', Récupération: 'Tendons / système nerveux' },
+                        'C\'est pendant ces heures que le fingerboard se transforme en force sur le mur.')
+                ]
+            }
+        ];
+
+        let currentDay = (new Date().getDay() || 7);
+
+        // ===== Init =====
         document.addEventListener('DOMContentLoaded', () => {
             const savedWeek = parseInt(localStorage.getItem('climbingWeek') || '1', 10);
             currentWeek = savedWeek >= 1 && savedWeek <= 12 ? savedWeek : 1;
+            const savedLevel = parseInt(localStorage.getItem('climbingLevel') || '5', 10);
+            level = savedLevel >= 1 && savedLevel <= 9 ? savedLevel : 5;
             initWeekSelector();
-            updateFingerProtocol();
             loadRoutes();
             loadHistory();
             updateStats();
         });
-        
+
         // Tab management
         function showTab(tabName, btn) {
             currentTab = tabName;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabName).classList.remove('hidden');
+            if (!btn) btn = [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes("'" + tabName + "'"));
             if (btn) btn.classList.add('active');
         }
-        
-        // Mur Session Toggle
-        function setMurSession(session) {
-            currentMurSession = session;
-            document.getElementById('mardiDetail').classList.toggle('hidden', session !== 'mardi');
-            document.getElementById('jeudiDetail').classList.toggle('hidden', session !== 'jeudi');
-            document.getElementById('btnMardi').className = session === 'mardi' ? 'btn btn-primary' : 'btn btn-ghost';
-            document.getElementById('btnJeudi').className = session === 'jeudi' ? 'btn btn-primary' : 'btn btn-ghost';
+
+        // ===== Rendu =====
+        function render() {
+            renderLevel();
+            renderDays();
+            renderDay();
+            updateFingerProtocol();
+            updateRings();
+            syncRouteGrades();
         }
-        
+
+        function renderLevel() {
+            const cfg = levelCfg();
+            document.getElementById('levelBadge').textContent = cfg.grade;
+            document.getElementById('hdrGrade').textContent = cfg.grade;
+            document.getElementById('levelLabel').textContent = cfg.grade + ' · ' + cfg.intensity;
+            document.getElementById('levelRange').value = level;
+            document.getElementById('coachBox').innerHTML =
+                `<b>Cotation cible : ${cfg.grade}</b> — échauffement ${cfg.warm}, vitesse ${cfg.cruise}, au-dessus ${cfg.above}<br>` +
+                `${cfg.volume} voies par séance de mur · ${cfg.attempts} essais par voie le jeudi · fingerboard prise ${cfg.holdLabel} · ${cfg.lest}<br>` +
+                `Charge : <b>${cfg.intensity}</b>. ${phaseKey() === '1-4' ? 'Phase adaptation : on construit la base.' : phaseKey() === '5-8' ? 'Phase intensification : on monte la force.' : 'Phase conversion : on transforme la force en performance.'}` +
+                (isDeload() ? '<br><b>Semaine de décharge</b> : volume réduit, qualité maximale.' : '');
+        }
+
+        function renderDays() {
+            const today = new Date().getDay() || 7;
+            document.getElementById('daySelector').innerHTML = PLAN.map((day, i) => {
+                const n = i + 1;
+                const cls = ['day-btn'];
+                if (n === currentDay) cls.push('active');
+                if (n === today) cls.push('today');
+                return `<button class="${cls.join(' ')}" onclick="selectDay(${n})">${day.short}</button>`;
+            }).join('');
+            const badge = document.getElementById('planWeekBadge');
+            badge.textContent = 'S' + currentWeek + (isDeload() ? ' · Décharge' : '');
+            badge.className = 'badge ' + (isDeload() ? 'badge-warning' : 'badge-primary');
+        }
+
+        function selectDay(n) {
+            currentDay = n;
+            renderDays();
+            renderDay();
+        }
+
+        function exerciseHtml(e) {
+            const params = Object.keys(e.params).map(k =>
+                `<div class="param"><span class="param-label">${k}</span><span class="param-value">${e.params[k]}</span></div>`).join('');
+            return `<div class="exercise-detail" style="border-left-color: ${e.color};">
+                <div class="exercise-name"><span>${e.name}</span><span class="badge ${e.badge}">${e.dur}</span></div>
+                <div class="exercise-params">${params}</div>
+                <div class="exercise-notes">${e.notes}</div>
+            </div>`;
+        }
+
+        function renderDay() {
+            const cfg = levelCfg();
+            const deload = isDeload();
+            const day = PLAN[currentDay - 1];
+            const exercises = day.build(cfg, weekVolume(cfg), fingerProtocol(), ringsPresets(cfg));
+            document.getElementById('dayPlan').innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">${day.icon} ${DAYS[currentDay - 1]} — ${day.title}</span>
+                    <span class="badge ${deload ? 'badge-warning' : 'badge-primary'}">${deload ? 'Décharge' : 'Semaine ' + currentWeek}</span>
+                </div>
+                <div class="coach-box">${day.brief(cfg)}</div>
+                <div class="detail-section">
+                    <div class="detail-title">Structure détaillée</div>
+                    ${exercises.map(exerciseHtml).join('')}
+                </div>
+                ${day.tab ? `<button class="btn btn-outline" style="width: 100%; margin-top: 12px;" onclick="showTab('${day.tab}')">Ouvrir la séance ↗</button>` : ''}
+            </div>`;
+        }
+
+        // Avis coach basé sur les voies réellement tracées
+        function coachSuggest() {
+            const routes = JSON.parse(localStorage.getItem('climbingRoutes') || '[]');
+            const cfg = levelCfg();
+            if (routes.length < 3) {
+                alert('Pas encore assez de données : trace au moins 3 voies (journal plus bas) et je te donne un avis.');
+                return;
+            }
+            const recent = routes.slice(0, 10);
+            const flashRate = recent.filter(r => r.status === 'flash').length / recent.length;
+            const atGrade = recent.filter(r => r.grade === cfg.grade).length;
+            let delta = 0;
+            let why = Math.round(flashRate * 100) + '% de flash sur tes 10 dernières voies :';
+            if (flashRate >= 0.7 && atGrade >= 3) {
+                delta = 1;
+                why += ' tu as de la marge, on monte.';
+            } else if (flashRate <= 0.15) {
+                delta = -1;
+                why += ' ça ne passe pas encore, on redescend d\'un cran pour consolider.';
+            } else {
+                why += ' niveau gardé, on consolide avant de monter.';
+            }
+            if (delta) setLevel(level + delta);
+            alert('Coach : ' + why + (delta ? '\nNouveau niveau : ' + levelCfg().grade + '.' : ''));
+        }
+
         // Week Selector
         function initWeekSelector() {
             const container = document.getElementById('weekSelector');
@@ -1141,7 +1178,7 @@
             }
             selectWeek(currentWeek);
         }
-        
+
         function selectWeek(week) {
             currentWeek = week;
             localStorage.setItem('climbingWeek', week);
@@ -1149,29 +1186,50 @@
                 btn.classList.toggle('active', idx + 1 === week);
             });
             document.getElementById('currentWeekDisplay').textContent = week;
-            
-            const phaseKey = week <= 4 ? '1-4' : week <= 8 ? '5-8' : '9-12';
-            const phase = phases[phaseKey];
-            document.getElementById('weekPhase').textContent = phase.name;
-            document.getElementById('phaseGoals').textContent = phase.goals;
-            document.getElementById('murWeekBadge').textContent = 'Semaine ' + week;
-            document.getElementById('fingerWeekBadge').textContent = 'S' + phaseKey;
-            
-            updateFingerProtocol();
+            document.getElementById('weekPhase').textContent = phases[phaseKey()].name;
+            document.getElementById('phaseGoals').textContent = phases[phaseKey()].goals(levelCfg());
+            document.getElementById('fingerWeekBadge').textContent = 'S' + phaseKey();
+            render();
         }
-        
+
         // Fingerboard Protocol
         function updateFingerProtocol() {
-            const phaseKey = currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
-            const protocol = phases[phaseKey].finger;
-            
+            const protocol = fingerProtocol();
             document.getElementById('protocolSets').textContent = protocol.sets;
             document.getElementById('protocolWork').textContent = protocol.work + 's';
             document.getElementById('protocolRest').textContent = protocol.rest + 's';
             document.getElementById('protocolTotal').textContent = Math.ceil((protocol.sets * (protocol.work + protocol.rest)) / 60) + 'min';
             document.getElementById('protocolNotes').textContent = protocol.note;
-            
-            document.getElementById('timer').textContent = protocol.work;
+            if (!fingerTimer) document.getElementById('timer').textContent = protocol.work;
+
+            const cfg = levelCfg();
+            document.getElementById('fingerAdvice').innerHTML =
+                `<strong>Phase :</strong> ${phases[phaseKey()].name} (S${phaseKey()})<br>` +
+                `<strong>Semaine ${currentWeek} :</strong> ${isDeload() ? 'décharge — on enlève une série et on ne rajoute rien.' : 'progression normale.'}<br>` +
+                `<strong>Prescription :</strong> ${protocol.sets}× ${protocol.work}s / ${protocol.rest}s en ${cfg.holdLabel}, ${cfg.lest}<br>` +
+                `<strong>Règle :</strong> arrête la série dès que la suspension se déforme, pas quand le temps est écoulé.`;
+
+            const hold = document.getElementById('holdSize');
+            if (hold.value !== cfg.hold) hold.value = cfg.hold;
+        }
+
+        function updateRings() {
+            const r = ringsPresets(levelCfg());
+            document.getElementById('ringsPull').textContent = r.pull;
+            document.getElementById('ringsDips').textContent = r.dips;
+            document.getElementById('ringsRow').textContent = r.row;
+            document.getElementById('ringsCore').textContent = r.core;
+            document.getElementById('ringsDurBadge').textContent = r.minutes + ' min';
+            document.getElementById('ringsAdvice').innerHTML =
+                `Semaine ${currentWeek} · ${isDeload() ? '<b>décharge</b>' : 'progression'} · intensité ${levelCfg().intensity}<br>` +
+                `Charge : ajoute du poids seulement si toutes les reps sont propres.`;
+            resetRingTimer();
+        }
+
+        function syncRouteGrades() {
+            const cfg = levelCfg();
+            document.getElementById('routeGrade').innerHTML = GRADES
+                .map(g => `<option value="${g}"${g === cfg.grade ? ' selected' : ''}>${g}</option>`).join('');
         }
         
         document.getElementById('fingerPhase').addEventListener('change', (e) => {
@@ -1201,8 +1259,7 @@
         function startFingerTimer() {
             if (fingerTimer) return;
             
-            const phaseKey = currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
-            const config = phases[phaseKey].finger;
+            const config = fingerProtocol();
             
             let currentSet = 1;
             let isWork = true;
@@ -1273,7 +1330,8 @@
         }
         
         // Rings Timer
-        let ringTimeLeft = 1800; // 30 min
+        function ringSeconds() { return ringsPresets(levelCfg()).minutes * 60; }
+        let ringTimeLeft = ringSeconds();
         
         function formatTime(totalSeconds) {
             const mins = Math.floor(totalSeconds / 60);
@@ -1289,7 +1347,7 @@
                 if (ringTimeLeft <= 0) {
                     stopRingTimer();
                     vibrate();
-                    saveSession('anneaux', 'Séance 30min terminée');
+                    saveSession('anneaux', 'Séance anneaux terminée - ' + levelCfg().grade);
                     return;
                 }
                 
@@ -1303,8 +1361,8 @@
         
         function resetRingTimer() {
             stopRingTimer();
-            ringTimeLeft = 1800;
-            document.getElementById('ringTimer').textContent = '30:00';
+            ringTimeLeft = ringSeconds();
+            document.getElementById('ringTimer').textContent = formatTime(ringTimeLeft);
         }
         
         // Rest Timer (Floating)
@@ -1367,7 +1425,7 @@
             routes.unshift({
                 name, grade, status, profile, notes,
                 date: new Date().toISOString(),
-                session: currentMurSession,
+                session: DAYS[currentDay - 1],
                 week: currentWeek
             });
             localStorage.setItem('climbingRoutes', JSON.stringify(routes.slice(0, 50)));
@@ -1485,11 +1543,13 @@
             document.getElementById('totalSessions').textContent = sessions.length;
             document.getElementById('totalRoutes').textContent = routes.length;
             
-            // Flash rate for 6c
-            const sixC = routes.filter(r => r.grade === '6c');
-            const sixCFlash = sixC.filter(r => r.status === 'flash').length;
-            const rate = sixC.length > 0 ? Math.round((sixCFlash / sixC.length) * 100) : 0;
+            // Flash rate sur la cotation cible actuelle
+            const target = levelCfg().grade;
+            const atGrade = routes.filter(r => r.grade === target);
+            const flashed = atGrade.filter(r => r.status === 'flash').length;
+            const rate = atGrade.length > 0 ? Math.round((flashed / atGrade.length) * 100) : 0;
             document.getElementById('flashRate').textContent = rate + '%';
+            document.getElementById('flashRateLabel').textContent = 'Taux de flash ' + target;
             
             // This week (semaine commençant le lundi)
             const now = new Date();
