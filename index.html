@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d12">
-<meta name="description" content="Programme d'entraînement escalade : niveau réglable de 5b à 8a, plan jour par jour, suivi de progression.">
+<meta name="description" content="Programme d'entraînement escalade : deux jours de salle par semaine (mardi, jeudi), séances à la maison, niveau réglable de 5b à 8a.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Escalade">
@@ -375,7 +375,7 @@ textarea{min-height:78px;resize:vertical}
 <section id="v-force" class="hidden">
     <div class="seg" style="margin:14px 0 2px">
         <button class="on" data-f="finger" onclick="setForce('finger')">🖐️ Doigts</button>
-        <button data-f="rings" onclick="setForce('rings')">💪 Anneaux</button>
+        <button data-f="home" onclick="setForce('home')">🏠 Maison</button>
     </div>
 
     <div id="force-finger">
@@ -413,22 +413,22 @@ textarea{min-height:78px;resize:vertical}
         </div>
     </div>
 
-    <div id="force-rings" class="hidden">
+    <div id="force-home" class="hidden">
         <div class="card">
             <div class="card-head">
-                <span class="card-title">Anneaux</span>
+                <span class="card-title">Force à la maison</span>
                 <span class="spacer"></span>
-                <span class="chip" id="ringsChip">30 min</span>
+                <span class="chip" id="homeChip">30 min</span>
             </div>
-            <div class="list" id="ringsList"></div>
+            <div class="list" id="homeList"></div>
             <div class="timer" style="margin-top:12px">
-                <div class="val ready" id="rTimer">Prêt</div>
-                <div class="ph" id="rPhase">Le chrono attend que tu valides chaque série, puis décompte le repos</div>
-                <div class="bar"><i id="rBar"></i></div>
+                <div class="val ready" id="hTimer">Prêt</div>
+                <div class="ph" id="hPhase">Le chrono attend que tu valides chaque série, puis décompte le repos</div>
+                <div class="bar"><i id="hBar"></i></div>
                 <div class="btn-row" style="justify-content:center">
-                    <button class="btn btn-primary" id="rStart" onclick="startRings()">Démarrer</button>
-                    <button class="btn btn-dark" onclick="stopRings()">Stop</button>
-                    <button class="btn btn-primary hidden" id="rNext" onclick="ringsNext()">Série faite ▶</button>
+                    <button class="btn btn-primary" id="hStart" onclick="startHome()">Démarrer</button>
+                    <button class="btn btn-dark" onclick="stopHome()">Stop</button>
+                    <button class="btn btn-primary hidden" id="hNext" onclick="homeNext()">Série faite ▶</button>
                 </div>
             </div>
         </div>
@@ -497,7 +497,7 @@ let level = 5;          // 1..9, 5 = 6c
 let currentWeek = 1;
 let currentDay = new Date().getDay() || 7;
 let forceTab = 'finger';
-let fingerCtl = null, ringCtl = null, restRun = null;
+let fingerCtl = null, homeCtl = null, restRun = null;
 let restLeft = 180;
 
 /* =================== ÉCHELLE =================== */
@@ -558,7 +558,7 @@ function cfg() {
         holdLabel: HOLD[hold],
         lest: d <= 0 ? 'Poids du corps' : d >= 3 ? '+10 à +15 kg' : '+5 kg',
         charge: d <= -3 ? 'très légère' : d <= -1 ? 'modérée' : d >= 3 ? 'maximale' : 'élevée',
-        ringSets: 3 + Math.max(0, d)
+        strengthSets: 3 + Math.max(0, d)
     };
 }
 
@@ -580,6 +580,7 @@ const PHASES = {
 const phase = () => currentWeek <= 4 ? '1-4' : currentWeek <= 8 ? '5-8' : '9-12';
 const deload = () => currentWeek % 4 === 0;
 const vol = c => deload() ? Math.max(2, c.vol - 2) : c.vol;
+const vol2 = c => Math.max(2, vol(c) - 1);      // deuxième séance de salle : on garde sous contrôle
 
 function fingerSets() { return Math.max(2, cfg().d >= 3 ? 6 : 5) - (deload() ? 1 : 0); }
 function fingerWork() { return phase() === '9-12' ? 5 : 7; }
@@ -588,7 +589,7 @@ function fingerRest() { return phase() === '9-12' ? 55 : 53; }
 const PLAN = [
     {
         d: 'Lun', icon: '🖐️', name: 'Force de doigts', kind: 'force', view: 'force',
-        brief: c => `Les doigts récupèrent en 48 h : on construit la force aujourd'hui pour l'exploiter jeudi et samedi. Objectif ${c.grade} : ${c.holdLabel.toLowerCase()}, ${c.lest.toLowerCase()}.`,
+        brief: c => `Les doigts récupèrent en 48 h : on construit la force aujourd'hui pour l'exploiter sur le mur mardi et jeudi. Objectif ${c.grade} : ${c.holdLabel.toLowerCase()}, ${c.lest.toLowerCase()}.`,
         items: c => [
             { t: 'Mise en route des doigts', d: '10 min', p: [['Séries','2'],['Travail','5s'],['Repos','55s']],
               n: 'Suspens bras tendus, tempo lent. On réveille le tendon avant de charger, et on ne prend jamais à deux doigts si ça tire.' },
@@ -600,7 +601,7 @@ const PLAN = [
     },
     {
         d: 'Mar', icon: '🏔️', name: 'Technique et lecture', kind: 'mur',
-        brief: c => `Séance de qualité, pas de puissance : rien de plus rapide que ce que tu contrôles. Le programme travaille ${c.easy} et ${c.grade}.`,
+        brief: c => `Premier jour de salle de la semaine : c'est ici que passe le volume, ${vol(c) + 1} voies à la cotation cible. Tu as reposé deux jours, tu peux enchaîner — mais rien de plus rapide que ce que tu contrôles.`,
         items: c => [
             { t: 'Échauffement progressif', d: '20 min', p: [['Intensité','50-60 %'],['Cotation', c.easy + ' → ' + c.cruise]],
               n: 'Deux voies en lead ou moulinette, mouvements fluides, respiration contrôlée, étirements dynamiques entre chaque voie.' },
@@ -628,51 +629,52 @@ const PLAN = [
         d: 'Jeu', icon: '🏔️', name: 'Performance et flash', kind: 'mur',
         brief: c => {
             const w = weakProfile();
-            return `Jour de vérité : objectif flash ${c.grade} en ${c.tries} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`
+            return `Deuxième jour de salle, 48 h après le mardi : moins de volume, plus d'intention. Objectif flash ${c.grade} en ${c.tries} essais par voie.`
                 + (w ? ` <b>Priorité ${w.p.toLowerCase()}</b> (${w.f} % de flash sur ${w.n} voies).` : '');
         },
         items: c => {
             const w = weakProfile();
+            const v = vol2(c);
             return [
             { t: 'Activation', d: '15 min', p: [['Progression', c.easy + ' → ' + c.cruise + ' → ' + c.grade]],
               n: 'Dernière voie à allure soutenue mais contrôlée. C\'est ici que tu prépares le mental pour les essais.' },
-            { t: 'Essais flash', d: '45 min', p: [['Cotation', c.grade],['Voies', vol(c)],['Priorité', w ? w.p : 'Varier']],
+            { t: 'Essais flash', d: '45 min', p: [['Cotation', c.grade],['Voies', v],['Priorité', w ? w.p : 'Varier']],
               n: 'Une tentative par voie, sur des profils différents : verticale, dévers, dalle, toit. Note où et pourquoi tu échoues.' },
             { t: 'Work ciblé', d: '30 min', p: [['Méthode','Par séquences'],['Reps','3-4 par crux']],
               n: 'Prends la voie qui t\'a le plus accroché et travaille les passages difficiles en partant de la prise juste avant le crux.' },
-            { t: 'Volume pump', d: '20 min', p: [['Cotation', c.cruise],['Voies', vol(c)],['Repos','3 min max']],
-              n: 'Enchaînement pour l\'endurance de force. Dernière voie difficile mais terminable : pump gérable, jamais de rupture.' }
+            { t: 'Volume pump', d: '15 min', p: [['Cotation', c.cruise],['Voies', v],['Repos','3 min max']],
+              n: 'Juste assez pour finir en pompant. On sort de la salle avant de se casser : c\'est la dernière séance de grimpe de la semaine.' }
             ];
         }
     },
     {
-        d: 'Ven', icon: '💪', name: 'Anneaux et gainage', kind: 'force', view: 'force',
-        brief: c => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${ringSets()} séries par exercice, la qualité avant la charge. Le chrono enchaîne les repos tout seul.`,
-        items: c => [
-            { t: 'Tractions lestées', d: '12 min', sets: ringSets(), reps: 5, rest: ringsRest(0),
-              p: [['Séries', ringsPull()],['Repos', fmt(ringsRest(0))]],
-              n: 'Montée explosive, descente lente sur 3 secondes. Tu ajoutes du poids seulement si toutes les reps sont propres.' },
-            { t: 'Dips aux anneaux', d: '8 min', sets: ringSets(), reps: 8, rest: ringsRest(1),
-              p: [['Séries', ringsDips()],['Repos', fmt(ringsRest(1))],['Coudes','Près du corps']],
-              n: 'Trop dur : pieds au sol. Trop facile : jambes tendues devant ou anneaux lestés.' },
-            { t: 'Rows (tirage horizontal)', d: '8 min', sets: ringSets(), reps: 10, rest: ringsRest(2),
-              p: [['Séries', ringsRow()],['Repos', fmt(ringsRest(2))],['Position','Corps gainé']],
-              n: 'Plus tu recules les pieds, plus c\'est dur. Tu tires les coudes vers les hanches, pas vers la poitrine.' },
-            { t: 'Gainage dynamique', d: '5 min', sets: deload() ? 2 : 3, reps: 30, rest: ringsRest(3),
-              p: [['Séries', ringsCore()],['Repos', fmt(ringsRest(3))],['Exercice','Hollow body']],
+        d: 'Ven', icon: '🏠', name: 'Force à la maison', kind: 'maison', view: 'force',
+        brief: () => `Pas de salle le vendredi : on construit le corps en dehors du mur — traction, push et gainage. ${homeSets()} séries par exercice, le chrono enchaîne les repos tout seul.`,
+        items: () => [
+            { t: 'Tractions (barre)', d: '12 min', sets: homeSets(), reps: 6, rest: homeRest(0),
+              p: [['Séries', homePull()],['Repos', fmt(homeRest(0))]],
+              n: 'Descente lente sur 3 secondes, pas de balancement. Avec une barre, ajoute des charges quand toutes les reps sont propres.' },
+            { t: 'Pompes', d: '8 min', sets: homeSets(), reps: 12, rest: homeRest(1),
+              p: [['Séries', homePush()],['Repos', fmt(homeRest(1))],['Poignets', 'Neutres']],
+              n: 'Corps en ligne, coudes à 45 degrés, amplitude complète. Si c\'est facile, ralentis la descente sur 3 secondes.' },
+            { t: 'Dips sur chaise', d: '6 min', sets: homeSets(), reps: 8, rest: homeRest(2),
+              p: [['Séries', homeDip()],['Repos', fmt(homeRest(2))],['Coudes', 'Près du corps']],
+              n: "Mains en arrière sur une chaise, jambes tendues. Trop dur : plie les genoux pour t'aider." },
+            { t: 'Gainage', d: '5 min', sets: deload() ? 2 : 3, reps: 30, rest: homeRest(3),
+              p: [['Séries', homeCore()],['Repos', fmt(homeRest(3))],['Exercice', 'Hollow body']],
               n: 'Gainage profond, pas juste des abdos. C\'est la tension corporelle qui te fait tenir en dévers.' }
         ]
     },
     {
-        d: 'Sam', icon: '🏔️', name: 'Volume et endurance', kind: 'mur',
-        brief: c => `Dernière séance de la semaine : tu enchaînes, tu ne craques pas. On travaille la résistance à la fatigue, pas la force maximale.`,
-        items: c => [
-            { t: 'Endurance', d: '30 min', p: [['Cotation', c.cruise],['Voies', vol(c) + 1],['Repos','4 min']],
-              n: 'Rythme régulier, respiration par le nez. Tu dois pouvoir parler entre deux voies.' },
-            { t: 'Circuits de coordination', d: '20 min', p: [['Cotation', c.easy],['Passages','5'],['Repos','90 s']],
-              n: 'Enchaînements sur dévers ou sur dalle : on rappelle la précision quand la force est basse.' },
-            { t: 'Longue voie', d: '1', p: [['Cotation', c.cruise],['Repos','8 min avant']],
-              n: 'Si tu tombes, la voie est trop dure aujourd\'hui. C\'est une donnée, pas un échec.' }
+        d: 'Sam', icon: '🏃', name: 'Endurance et mobilité', kind: 'maison',
+        brief: () => 'Pas de salle le samedi : cardio doux et mobilité. On fait monter le volume sans jamais charger les doigts — c\'est ce qui permet de tenir deux séances de salle par semaine.',
+        items: () => [
+            { t: 'Cardio doux', d: '35 min', p: [['Rythme', 'Zone 1'],['Test', 'Tu peux parler']],
+              n: 'Vélo, course, montée d\'escaliers : ce qui te fait plaisir mais où tu es à l\'aise. C\'est ce volume-là qui nourrit la grimpe.' },
+            { t: 'Mobilité hanches et épaules', d: '20 min', p: [['Exercices', '90/90, cercles'],['Séries', '2 × 8']],
+              n: 'Insistance sur la rotation interne d\'épaule et la mobilité de hanche : c\'est là que se perd la puissance sur dévers et sur dalle.' },
+            { t: 'Préhension douce', d: '10 min', p: [['Type', 'Main ouverte'],['Suspension', 'Aucune']],
+              n: 'Mains ouvertes sur des volumes, doigts relâchés. On garde le tendon souple sans le charger.' }
         ]
     },
     {
@@ -687,20 +689,20 @@ const PLAN = [
     }
 ];
 
-function ringsPull() { return ringSets() + ' × 5'; }
-function ringsDips() { return ringSets() + ' × 8'; }
-function ringsRow() { return ringSets() + ' × 10'; }
-function ringsCore() { return deload() ? '2 × 30 s' : '3 × 30 s'; }
-function ringSets() { return Math.max(2, cfg().ringSets - (deload() ? 1 : 0)); }
-const RING_REST = [150, 90, 90, 45];        // tractions, dips, rows, gainage
-const RING_WORK = [20, 20, 25, 30];
-function ringsRest(n) { return RING_REST[n] + Math.max(0, cfg().d) * (n === 0 ? 15 : 5); }
-function ringsMinutes() {
+function homePull() { return homeSets() + ' × 6'; }
+function homePush() { return homeSets() + ' × 12'; }
+function homeDip() { return homeSets() + ' × 8'; }
+function homeCore() { return deload() ? '2 × 30 s' : '3 × 30 s'; }
+function homeSets() { return Math.max(2, cfg().strengthSets - (deload() ? 1 : 0)); }
+const HOME_REST = [120, 90, 90, 45];        // tractions, pompes, dips, gainage
+const HOME_WORK = [25, 25, 20, 30];
+function homeRest(n) { return HOME_REST[n] + Math.max(0, cfg().d) * (n === 0 ? 15 : 5); }
+function homeMinutes() {
     const items = PLAN[4].items(cfg());
     let s = 0;
     items.forEach((it, i) => {
         for (let k = 1; k <= it.sets; k++) {
-            s += RING_WORK[i];
+            s += HOME_WORK[i];
             if (k < it.sets || i < items.length - 1) s += it.rest;
         }
         s += 60;                             // transition entre exercices
@@ -721,7 +723,7 @@ function seqFinger() {
     return seq;
 }
 
-function seqRings() {
+function seqHome() {
     const items = PLAN[4].items(cfg());
     const seq = [];
     items.forEach((it, i) => {
@@ -796,9 +798,9 @@ function go(v) {
 function setForce(f) {
     forceTab = f;
     document.getElementById('force-finger').classList.toggle('hidden', f !== 'finger');
-    document.getElementById('force-rings').classList.toggle('hidden', f !== 'rings');
+    document.getElementById('force-home').classList.toggle('hidden', f !== 'home');
     document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === f));
-    if (f === 'rings') resetRings();
+    if (f === 'home') resetHome();
 }
 
 /* =================== RENDU =================== */
@@ -827,7 +829,7 @@ function render() {
     renderDay();
     renderCycle();
     renderFinger();
-    renderRings();
+    renderHome();
     renderFingerLog();
     renderStats();
     syncGradeSelect();
@@ -866,7 +868,7 @@ function listHtml(items, done) {
 }
 
 function renderWeekStrip() {
-    const colors = { mur: 'var(--lime)', force: 'var(--violet)', recup: 'var(--sky)', repos: 'var(--line)' };
+    const colors = { mur: 'var(--lime)', force: 'var(--violet)', maison: 'var(--amber)', recup: 'var(--sky)', repos: 'var(--line)' };
     const strip = from => PLAN.map((day, i) => {
         const n = i + 1;
         const cls = ['day'];
@@ -929,10 +931,10 @@ function renderFinger() {
         '<br>Règle : tu arrêtes la série quand la suspension se déforme, pas quand le chrono sonne.';
 }
 
-function renderRings() {
+function renderHome() {
     const c = cfg();
-    document.getElementById('ringsChip').textContent = '≈ ' + ringsMinutes() + ' min';
-    document.getElementById('ringsList').innerHTML = PLAN[4].items(c).map(it => `
+    document.getElementById('homeChip').textContent = '≈ ' + homeMinutes() + ' min';
+    document.getElementById('homeList').innerHTML = PLAN[4].items(c).map(it => `
         <div class="item">
             <div class="item-b">
                 <div class="item-t">${it.t}</div>
@@ -941,7 +943,7 @@ function renderRings() {
                 <div class="item-n">${it.n}</div>
             </div>
         </div>`).join('');
-    if (!ringCtl) resetRings();
+    if (!homeCtl) resetHome();
 }
 
 function syncGradeSelect() {
@@ -1155,7 +1157,7 @@ function renderHistory() {
     const sessions = load('climbingSessions', []);
     const box = document.getElementById('historyList');
     if (!sessions.length) { box.innerHTML = '<p class="empty">Rien à signaler pour l\'instant.</p>'; return; }
-    const icons = { mur: '🏔️', force: '💪', fingerboard: '🖐️', anneaux: '💪', repos: '😴' };
+    const icons = { mur: '🏔️', force: '🖐️', maison: '🏠', fingerboard: '🖐️', anneaux: '🏠', repos: '😴' };
     box.innerHTML = sessions.slice(0, 12).map(s => `
         <div class="hist">
             <div class="d">${icons[s.type] || '•'} ${new Date(s.date).toLocaleDateString('fr-FR')} · semaine ${s.week}</div>
@@ -1270,29 +1272,29 @@ function stopFinger() {
 
 function fingerNext() { if (fingerCtl) fingerCtl.next(); }
 
-function startRings() {
-    if (ringCtl) return;
-    ringCtl = runSeq(seqRings(), { val:'rTimer', phase:'rPhase', bar:'rBar', start:'rStart', next:'rNext' }, () => {
-        ringCtl = null;
-        document.getElementById('rPhase').textContent = 'Séance terminée';
-        document.getElementById('rTimer').textContent = '✓';
+function startHome() {
+    if (homeCtl) return;
+    homeCtl = runSeq(seqHome(), { val:'hTimer', phase:'hPhase', bar:'hBar', start:'hStart', next:'hNext' }, () => {
+        homeCtl = null;
+        document.getElementById('hPhase').textContent = 'Séance terminée';
+        document.getElementById('hTimer').textContent = '✓';
         if (currentDay === 5) finishDay();
         renderToday();
     });
 }
 
-function ringsNext() { if (ringCtl) ringCtl.next(); }
+function homeNext() { if (homeCtl) homeCtl.next(); }
 
-function stopRings() {
-    if (!ringCtl) return;
-    ringCtl.stop();
-    ringCtl = null;
-    document.getElementById('rPhase').textContent = 'Stoppé';
+function stopHome() {
+    if (!homeCtl) return;
+    homeCtl.stop();
+    homeCtl = null;
+    document.getElementById('hPhase').textContent = 'Stoppé';
 }
 
-function resetRings() {
-    stopRings();
-    const el = document.getElementById('rTimer');
+function resetHome() {
+    stopHome();
+    const el = document.getElementById('hTimer');
     if (el) el.textContent = 'Prêt';
 }
 

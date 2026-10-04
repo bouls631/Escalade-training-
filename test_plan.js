@@ -29,7 +29,7 @@ global.confirm = () => true;
 
 const api = {};
 new Function('api', code + [
-    'api.get = () => ({ GRADES, PLAN, SETUP, cfg, phase, deload, vol, fingerSets, fingerWork, fingerRest, ringSets, ringsRest, ringsMinutes, seqFinger, seqRings, autoWeek, syncWeek, weakProfile, profileStats, profileTable, coachVerdict, cycleRate, fingerBest, currentWeek: () => currentWeek });',
+    'api.get = () => ({ GRADES, PLAN, SETUP, DAYS, cfg, phase, deload, vol, vol2, fingerSets, fingerWork, fingerRest, homeSets, homeRest, homeMinutes, seqFinger, seqHome, autoWeek, syncWeek, weakProfile, profileStats, profileTable, coachVerdict, cycleRate, fingerBest, currentWeek: () => currentWeek });',
     'api.render = () => render();',
     'api.setLevel = n => setLevel(n);',
     'api.day = (n, from) => pickDay(n, from);',
@@ -103,8 +103,22 @@ assert.strictEqual(f.length, G.fingerSets() * 3 - 1, 'il manque une phase dans l
 assert.ok(!f.some(p => p.t.includes('Mise en place') && p.d !== G.SETUP), 'toutes les mises en place durent 10 s');
 console.log('ok — fingerboard : mise en place ' + G.SETUP + ' s avant chaque série (' + f.length + ' phases)');
 
-/* ---------- séquence anneaux ---------- */
-const r = G.seqRings();
+/* ---------- deux jours de salle seulement : mardi et jeudi ---------- */
+const mur = G.PLAN.map((d, i) => ({ day: G.DAYS[i], kind: d.kind })).filter(x => x.kind === 'mur');
+assert.deepStrictEqual(mur.map(x => x.day), ['Mardi', 'Jeudi'], 'les seules séances de salle doivent être mardi et jeudi');
+assert.strictEqual(G.PLAN.filter(d => d.kind === 'maison').length, 2, 'vendredi et samedi doivent être des séances à la maison');
+assert.ok(G.PLAN[5].name.includes('Endurance'), 'le samedi doit être de l\'endurance à la maison');
+assert.ok(!G.PLAN.some(d => d.name.includes('anneaux')), 'plus de séance aux anneaux');
+assert.ok(G.PLAN[4].items(G.cfg()).every(it => it.t.length && it.rest >= 45), 'chaque exercice maison doit être complet');
+api.setLevel(5);
+api.start(iso(new Date()));
+assert.ok(G.vol2(G.cfg()) < G.vol(G.cfg()), 'le jeudi doit être plus léger que le mardi');
+assert.ok(G.PLAN[1].items(G.cfg())[1].p.some(p => /^[\d]+$/.test(String(p[1]))), 'la lecture de voie garde le volume du mardi');
+console.log('ok — salle mardi et jeudi uniquement, vendredi et samedi à la maison (' +
+    G.vol(G.cfg()) + ' voies mardi, ' + G.vol2(G.cfg()) + ' jeudi)');
+
+/* ---------- séquence de la séance maison ---------- */
+const r = G.seqHome();
 const items = G.PLAN[4].items(G.cfg());
 const waits = r.filter(p => p.k === 'wait');
 const counts = r.filter(p => p.k === 'count');
@@ -114,10 +128,10 @@ items.forEach(it => {
     assert.ok(it.rest >= 45, 'repos trop court sur ' + it.t);
     assert.ok(r.some(p => p.k === 'count' && p.d === it.rest), 'repos manquant pour ' + it.t);
 });
-assert.ok(counts.every(p => p.float), 'chaque repos anneaux doit afficher le chrono flottant');
-assert.ok(G.ringsMinutes() > 10, 'durée de séance anneaux incohérente');
-console.log('ok — anneaux : ' + waits.length + ' séries, ' + counts.length + ' repos (tractions ' +
-    G.ringsRest(0) + ' s, dips ' + G.ringsRest(1) + ' s), environ ' + G.ringsMinutes() + ' min');
+assert.ok(counts.every(p => p.float), 'chaque repos doit afficher le chrono flottant');
+assert.ok(G.homeMinutes() > 10, 'durée de séance maison incohérente');
+console.log('ok — séance maison : ' + waits.length + ' séries, ' + counts.length + ' repos (tractions ' +
+    G.homeRest(0) + ' s, pompes ' + G.homeRest(1) + ' s), environ ' + G.homeMinutes() + ' min');
 
 /* ---------- force de doigt ---------- */
 localStorage.removeItem('climbingFinger');
