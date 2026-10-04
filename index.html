@@ -78,7 +78,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.01em}
     padding:var(--pad);
     margin:14px 0;
 }
-.card.tight{padding:12px}
 .card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .card-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .card-head .spacer{flex:1}
@@ -170,14 +169,10 @@ h1,h2,h3{font-weight:700;letter-spacing:-.01em}
 .day.today{border-color:var(--lime)}
 .day .dot{display:block;width:6px;height:6px;border-radius:50%;margin:5px auto 0}
 .day .check{display:block;font-size:.7rem;color:var(--lime);height:.9rem}
-.wk{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:10px}
-.wk::-webkit-scrollbar{display:none}
-.wk button{
-    flex:0 0 auto;width:34px;height:34px;border-radius:10px;
-    border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
-    font:inherit;font-weight:800;font-size:.8rem;cursor:pointer;
-}
-.wk button.on{background:var(--lime);border-color:var(--lime);color:#0b0d12}
+.wkbar{display:flex;align-items:center;gap:8px;margin-top:12px}
+.wklabel{flex:1;text-align:center;line-height:1.25}
+.wklabel b{display:block;font-size:.95rem}
+.wklabel span{font-size:.68rem;color:var(--muted)}
 
 /* ---------- Formulaires ---------- */
 input,select,textarea{
@@ -279,9 +274,10 @@ textarea{min-height:78px;resize:vertical}
         <p class="sub" id="todaySub"></p>
     </div>
 
+    <div id="cycleCard" class="card hidden"></div>
+
     <div class="card">
-        <div class="card-head">
-            <span class="card-title">Ta séance</span>
+        <div class="card-head"><span class="card-title">Ta séance</span>
             <span class="spacer"></span>
             <span class="chip" id="todayPct">0 %</span>
         </div>
@@ -303,7 +299,7 @@ textarea{min-height:78px;resize:vertical}
         </div>
         <div class="lvl-meta"><span>5b</span><span id="lvlWord">charge élevée</span><span>8a</span></div>
         <p class="brief" id="coachLine" style="margin-top:12px"></p>
-        <button class="btn btn-dark btn-block" style="margin-top:10px" onclick="askCoach()">🧠 Conseiller le coach</button>
+        <p class="brief" id="coachVerdict" style="margin-top:10px"></p>
     </div>
 
     <div class="card">
@@ -322,7 +318,15 @@ textarea{min-height:78px;resize:vertical}
             <span class="chip on" id="phaseChip2">Adaptation</span>
         </div>
         <div class="week" id="weekStrip2"></div>
-        <div class="wk" id="wkPicker"></div>
+        <div class="wkbar">
+            <button class="chip" onclick="nudgeWeek(-1)">◀</button>
+            <div class="wklabel">
+                <b id="wkAuto">Semaine 1</b>
+                <span id="wkInfo">débutée le —</span>
+            </div>
+            <button class="chip" onclick="nudgeWeek(1)">▶</button>
+            <button class="chip" onclick="weekToday()">aujourd'hui</button>
+        </div>
     </div>
 
     <div class="card" id="dayCard"></div>
@@ -385,21 +389,27 @@ textarea{min-height:78px;resize:vertical}
                 <div class="stat"><div class="v" id="pSets">5</div><div class="l">Séries</div></div>
                 <div class="stat"><div class="v" id="pWork">7s</div><div class="l">Travail</div></div>
                 <div class="stat"><div class="v" id="pRest">53s</div><div class="l">Repos</div></div>
-                <div class="stat"><div class="v" id="pTotal">5min</div><div class="l">Total</div></div>
+                <div class="stat"><div class="v" id="pSetup">10s</div><div class="l">Mise en place</div></div>
             </div>
             <div class="timer" style="margin-top:12px">
-                <div class="val ready" id="fTimer">7</div>
+                <div class="val ready" id="fTimer">10</div>
                 <div class="ph" id="fPhase">Prêt</div>
                 <div class="bar"><i id="fBar"></i></div>
                 <div class="btn-row" style="justify-content:center">
                     <button class="btn btn-primary" id="fStart" onclick="startFinger()">Démarrer</button>
                     <button class="btn btn-dark" onclick="stopFinger()">Stop</button>
+                    <button class="btn btn-primary hidden" id="fNext" onclick="fingerNext()">Série faite ▶</button>
                 </div>
             </div>
+            <input type="number" id="fingerKg" min="0" step="0.5" placeholder="Poids utilisé en kg (0 = poids du corps)" style="margin-top:12px">
         </div>
         <div class="card">
             <div class="card-head"><span class="card-title">Prescription</span></div>
             <p class="brief" id="fingerText"></p>
+        </div>
+        <div class="card">
+            <div class="card-head"><span class="card-title">Progression force de doigt</span></div>
+            <div id="fingerLog"></div>
         </div>
     </div>
 
@@ -412,11 +422,13 @@ textarea{min-height:78px;resize:vertical}
             </div>
             <div class="list" id="ringsList"></div>
             <div class="timer" style="margin-top:12px">
-                <div class="val work" id="rTimer">30:00</div>
-                <div class="ph">Temps total de séance</div>
+                <div class="val ready" id="rTimer">Prêt</div>
+                <div class="ph" id="rPhase">Le chrono attend que tu valides chaque série, puis décompte le repos</div>
+                <div class="bar"><i id="rBar"></i></div>
                 <div class="btn-row" style="justify-content:center">
-                    <button class="btn btn-primary" onclick="startRings()">Démarrer</button>
+                    <button class="btn btn-primary" id="rStart" onclick="startRings()">Démarrer</button>
                     <button class="btn btn-dark" onclick="stopRings()">Stop</button>
+                    <button class="btn btn-primary hidden" id="rNext" onclick="ringsNext()">Série faite ▶</button>
                 </div>
             </div>
         </div>
@@ -442,6 +454,16 @@ textarea{min-height:78px;resize:vertical}
             <div class="stat"><div class="v" id="stSessions">0</div><div class="l">Séances</div></div>
             <div class="stat"><div class="v" id="stWeekSessions">0</div><div class="l">Cette semaine</div></div>
         </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><span class="card-title">Depuis le début du cycle</span><span class="spacer"></span><span class="chip" id="stCycle">0</span></div>
+        <p class="brief">Voies tracées sur ce cycle de 12 semaines.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><span class="card-title">Taux de flash par profil</span></div>
+        <div class="item-p" id="stProfiles"></div>
     </div>
 
     <div class="card">
@@ -475,7 +497,7 @@ let level = 5;          // 1..9, 5 = 6c
 let currentWeek = 1;
 let currentDay = new Date().getDay() || 7;
 let forceTab = 'finger';
-let fingerRun = null, ringRun = null, restRun = null;
+let fingerCtl = null, ringCtl = null, restRun = null;
 let restLeft = 180;
 
 /* =================== ÉCHELLE =================== */
@@ -483,6 +505,7 @@ const GRADES = ['4a','4b','4c','5a','5b','5c','6a','6b','6c','7a','7b','7c','8a'
 const BASE = '6c';
 const HOLD = { '20mm':'20mm — gros', '15mm':'15mm — moyen', '10mm':'10mm — petit', '8mm':'8mm — micro' };
 const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const SETUP = 10;       // fingerboard : temps de mise en place avant chaque série
 const todayIdx = () => new Date().getDay() || 7;
 
 function g(delta) {
@@ -496,6 +519,30 @@ function setLevel(v) {
     render();
 }
 
+/* =================== SEMAINE CALCULÉE =================== */
+const iso = d => d.toLocaleDateString('sv');                       // AAAA-MM-JJ, heure locale
+const asDate = v => (v instanceof Date ? v : new Date(v + 'T00:00'));   // reste en heure locale, pas UTC
+const daysBetween = (a, b) => Math.round((asDate(b) - asDate(a)) / 864e5);
+const startDate = () => load('climbingStart', null) || iso(new Date());
+const offset = () => parseInt(load('climbingWeekOffset', 0), 10) || 0;
+const clampWeek = w => Math.max(1, Math.min(12, w));
+
+function autoWeek() {
+    if (!load('climbingStart', null)) return 1;
+    return clampWeek(Math.floor(daysBetween(startDate(), new Date()) / 7) + 1);
+}
+function syncWeek() { currentWeek = clampWeek(autoWeek() + offset()); }
+
+function nudgeWeek(n) {
+    store('climbingWeekOffset', clampWeek(currentWeek + n) - autoWeek());
+    render();
+}
+function weekToday() {
+    store('climbingStart', iso(new Date()));
+    store('climbingWeekOffset', 0);
+    render();
+}
+
 /* =================== NIVEAU =================== */
 function cfg() {
     const d = level - 5;
@@ -503,7 +550,6 @@ function cfg() {
     return {
         d,
         grade: g(d),
-        up: g(d + 1),
         cruise: g(d - 1),
         easy: g(d - 2),
         vol: d <= -3 ? 2 : d <= -1 ? 3 : d >= 3 ? 6 : 4,
@@ -580,29 +626,40 @@ const PLAN = [
     },
     {
         d: 'Jeu', icon: '🏔️', name: 'Performance et flash', kind: 'mur',
-        brief: c => `Jour de vérité : objectif flash ${c.grade} en ${c.tries} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`,
-        items: c => [
+        brief: c => {
+            const w = weakProfile();
+            return `Jour de vérité : objectif flash ${c.grade} en ${c.tries} essais par voie. On ne cherche pas la force brute, on cherche l'exécution.`
+                + (w ? ` <b>Priorité ${w.p.toLowerCase()}</b> (${w.f} % de flash sur ${w.n} voies).` : '');
+        },
+        items: c => {
+            const w = weakProfile();
+            return [
             { t: 'Activation', d: '15 min', p: [['Progression', c.easy + ' → ' + c.cruise + ' → ' + c.grade]],
               n: 'Dernière voie à allure soutenue mais contrôlée. C\'est ici que tu prépares le mental pour les essais.' },
-            { t: 'Essais flash', d: '45 min', p: [['Cotation', c.grade],['Voies', vol(c)],['Repos','10 min']],
+            { t: 'Essais flash', d: '45 min', p: [['Cotation', c.grade],['Voies', vol(c)],['Priorité', w ? w.p : 'Varier']],
               n: 'Une tentative par voie, sur des profils différents : verticale, dévers, dalle, toit. Note où et pourquoi tu échoues.' },
             { t: 'Work ciblé', d: '30 min', p: [['Méthode','Par séquences'],['Reps','3-4 par crux']],
               n: 'Prends la voie qui t\'a le plus accroché et travaille les passages difficiles en partant de la prise juste avant le crux.' },
             { t: 'Volume pump', d: '20 min', p: [['Cotation', c.cruise],['Voies', vol(c)],['Repos','3 min max']],
               n: 'Enchaînement pour l\'endurance de force. Dernière voie difficile mais terminable : pump gérable, jamais de rupture.' }
-        ]
+            ];
+        }
     },
     {
         d: 'Ven', icon: '💪', name: 'Anneaux et gainage', kind: 'force', view: 'force',
-        brief: c => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${c.ringSets} séries par exercice, la qualité avant la charge.`,
+        brief: c => `Force générale et tension corporelle : c'est ce qui tient le corps en dévers. ${ringSets()} séries par exercice, la qualité avant la charge. Le chrono enchaîne les repos tout seul.`,
         items: c => [
-            { t: 'Tractions lestées', d: '12 min', p: [['Séries', ringsPull()],['Repos','2-3 min']],
+            { t: 'Tractions lestées', d: '12 min', sets: ringSets(), reps: 5, rest: ringsRest(0),
+              p: [['Séries', ringsPull()],['Repos', fmt(ringsRest(0))]],
               n: 'Montée explosive, descente lente sur 3 secondes. Tu ajoutes du poids seulement si toutes les reps sont propres.' },
-            { t: 'Dips aux anneaux', d: '8 min', p: [['Séries', ringsDips()],['Coudes','Près du corps']],
+            { t: 'Dips aux anneaux', d: '8 min', sets: ringSets(), reps: 8, rest: ringsRest(1),
+              p: [['Séries', ringsDips()],['Repos', fmt(ringsRest(1))],['Coudes','Près du corps']],
               n: 'Trop dur : pieds au sol. Trop facile : jambes tendues devant ou anneaux lestés.' },
-            { t: 'Rows (tirage horizontal)', d: '8 min', p: [['Séries', ringsRow()],['Position','Corps gainé']],
+            { t: 'Rows (tirage horizontal)', d: '8 min', sets: ringSets(), reps: 10, rest: ringsRest(2),
+              p: [['Séries', ringsRow()],['Repos', fmt(ringsRest(2))],['Position','Corps gainé']],
               n: 'Plus tu recules les pieds, plus c\'est dur. Tu tires les coudes vers les hanches, pas vers la poitrine.' },
-            { t: 'Gainage dynamique', d: '5 min', p: [['Séries', ringsCore()],['Exercice','Hollow body']],
+            { t: 'Gainage dynamique', d: '5 min', sets: deload() ? 2 : 3, reps: 30, rest: ringsRest(3),
+              p: [['Séries', ringsCore()],['Repos', fmt(ringsRest(3))],['Exercice','Hollow body']],
               n: 'Gainage profond, pas juste des abdos. C\'est la tension corporelle qui te fait tenir en dévers.' }
         ]
     },
@@ -635,7 +692,89 @@ function ringsDips() { return ringSets() + ' × 8'; }
 function ringsRow() { return ringSets() + ' × 10'; }
 function ringsCore() { return deload() ? '2 × 30 s' : '3 × 30 s'; }
 function ringSets() { return Math.max(2, cfg().ringSets - (deload() ? 1 : 0)); }
-function ringsMinutes() { return deload() ? 25 : 30 + Math.max(0, cfg().d) * 3; }
+const RING_REST = [150, 90, 90, 45];        // tractions, dips, rows, gainage
+const RING_WORK = [20, 20, 25, 30];
+function ringsRest(n) { return RING_REST[n] + Math.max(0, cfg().d) * (n === 0 ? 15 : 5); }
+function ringsMinutes() {
+    const items = PLAN[4].items(cfg());
+    let s = 0;
+    items.forEach((it, i) => {
+        for (let k = 1; k <= it.sets; k++) {
+            s += RING_WORK[i];
+            if (k < it.sets || i < items.length - 1) s += it.rest;
+        }
+        s += 60;                             // transition entre exercices
+    });
+    return Math.ceil(s / 60);
+}
+
+/* =================== SÉQUENCES DE CHRONO ===================
+   count = décompte automatique | wait = le grimpeur valide lui-même
+   (des reps ne se minutent pas, seule la mise en place et le repos se chronomètrent) */
+function seqFinger() {
+    const n = fingerSets(), seq = [];
+    for (let i = 1; i <= n; i++) {
+        seq.push({ k:'count', d:SETUP, t:'Mise en place — série ' + i + '/' + n, tone:'sky' });
+        seq.push({ k:'count', d:fingerWork(), t:'Travail — série ' + i + '/' + n, tone:'lime' });
+        if (i < n) seq.push({ k:'count', d:fingerRest(), t:'Repos — série ' + i + '/' + n, tone:'amber', float:true });
+    }
+    return seq;
+}
+
+function seqRings() {
+    const items = PLAN[4].items(cfg());
+    const seq = [];
+    items.forEach((it, i) => {
+        for (let s = 1; s <= it.sets; s++) {
+            seq.push({ k:'wait', t: it.t + ' — série ' + s + '/' + it.sets, tone:'lime' });
+            if (s < it.sets || i < items.length - 1) {
+                seq.push({ k:'count', d:it.rest, t:'Repos — ' + it.t.toLowerCase(), tone:'amber', float:true });
+            }
+        }
+    });
+    return seq;
+}
+
+/* =================== FORCE DE DOIGT MESURÉE =================== */
+function fingerKg() { return Math.max(0, parseInt(document.getElementById('fingerKg').value, 10) || 0); }
+
+function logFinger() {
+    const log = load('climbingFinger', []);
+    log.unshift({
+        date: iso(new Date()),
+        hold: cfg().hold,
+        kg: fingerKg(),
+        sets: fingerSets(),
+        work: fingerWork(),
+        week: currentWeek
+    });
+    store('climbingFinger', log.slice(0, 60));
+    renderFingerLog();
+}
+
+function fingerBest() {
+    const best = {};
+    load('climbingFinger', []).forEach(s => {
+        if (s.kg > (best[s.hold] ?? -1)) best[s.hold] = s.kg;
+    });
+    return best;
+}
+
+function renderFingerLog() {
+    const log = load('climbingFinger', []);
+    const box = document.getElementById('fingerLog');
+    if (!log.length) {
+        box.innerHTML = '<p class="empty">Termine un fingerboard en notant le poids : tu verras ta force de doigt évoluer.</p>';
+        return;
+    }
+    const best = fingerBest();
+    const records = Object.keys(best).map(h => `${h} : ${best[h] ? '+' + best[h] + ' kg' : 'poids du corps'}`);
+    box.innerHTML = `<p class="brief"><b>Records :</b> ${records.join(' · ')}</p>` + log.slice(0, 6).map(s => `
+        <div class="hist">
+            <div class="d">${new Date(s.date + 'T00:00').toLocaleDateString('fr-FR')} · semaine ${s.week}</div>
+            ${s.kg ? '+' + s.kg + ' kg' : 'poids du corps'} · ${s.sets} × ${s.work} s en ${HOLD[s.hold]}
+        </div>`).join('');
+}
 
 /* =================== STOCKAGE =================== */
 function store(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
@@ -651,7 +790,6 @@ function go(v) {
         document.getElementById('v-' + name).classList.toggle('hidden', name !== v);
     });
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-    if (v === 'stats') renderStats();
     window.scrollTo({ top: 0 });
 }
 
@@ -665,6 +803,7 @@ function setForce(f) {
 
 /* =================== RENDU =================== */
 function render() {
+    syncWeek();
     const c = cfg();
     const ph = PHASES[phase()];
 
@@ -676,18 +815,21 @@ function render() {
     ['phaseChip','phaseChip2','phaseChip3'].forEach(id => { document.getElementById(id).textContent = ph.name; });
 
     document.getElementById('coachLine').innerHTML =
-        `Tu travailles <b>${c.grade}</b> : échauffement ${c.easy}, rythme ${c.cruise}` +
-        (c.up === c.grade ? '' : ', au-dessus ' + c.up) + '.<br>' +
+        `Tu travailles <b>${c.grade}</b> : échauffement ${c.easy}, rythme ${c.cruise}.<br>` +
         `${c.vol} voies par séance de mur, ${c.tries} essais le jeudi, doigts ${c.holdLabel.toLowerCase()} avec ${c.lest.toLowerCase()}.<br>` +
         `<b>${ph.name}</b> — ${deload() ? 'semaine de décharge, volume réduit.' : 'charge ' + c.charge + '.'}`;
     document.getElementById('phaseText').textContent = ph.text(c);
     document.getElementById('stGoals').textContent = ph.text(c);
 
+    renderCoach();
     renderToday();
     renderWeekStrip();
     renderDay();
+    renderCycle();
     renderFinger();
     renderRings();
+    renderFingerLog();
+    renderStats();
     syncGradeSelect();
 }
 
@@ -738,16 +880,9 @@ function renderWeekStrip() {
     document.getElementById('weekStrip').innerHTML = strip('today');
     document.getElementById('weekStrip2').innerHTML = strip('week');
 
-    const picker = document.getElementById('wkPicker');
-    if (!picker.children.length) {
-        for (let i = 1; i <= 12; i++) {
-            const b = document.createElement('button');
-            b.textContent = i;
-            b.onclick = () => { currentWeek = i; store('climbingWeek', i); render(); };
-            picker.appendChild(b);
-        }
-    }
-    [...picker.children].forEach((b, i) => b.classList.toggle('on', i + 1 === currentWeek));
+    document.getElementById('wkAuto').textContent = 'Semaine ' + currentWeek + (offset() ? ' (ajustée)' : '');
+    document.getElementById('wkInfo').textContent = 'cycle démarré le ' +
+        new Date(startDate() + 'T00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function renderDay() {
@@ -778,12 +913,16 @@ function renderFinger() {
     document.getElementById('pSets').textContent = fingerSets();
     document.getElementById('pWork').textContent = fingerWork() + 's';
     document.getElementById('pRest').textContent = fingerRest() + 's';
-    document.getElementById('pTotal').textContent = Math.ceil(fingerSets() * (fingerWork() + fingerRest()) / 60) + ' min';
-    if (!fingerRun) document.getElementById('fTimer').textContent = fingerWork();
+    document.getElementById('pSetup').textContent = SETUP + 's';
+    if (!fingerCtl) {
+        document.getElementById('fTimer').textContent = SETUP;
+        document.getElementById('fTimer').className = 'val ready';
+    }
 
     document.getElementById('fingerText').innerHTML =
         `<b>${PHASES[phase()].name}</b> — semaine ${currentWeek}${deload() ? ' (décharge)' : ''}.<br>` +
-        `${fingerSets()} séries de ${fingerWork()} s en ${c.holdLabel}, ${c.lest.toLowerCase()}.<br>` +
+        `Par série : ${SETUP} s de mise en place, puis ${fingerWork()} s de suspension, puis ${fingerRest()} s de repos.<br>` +
+        `Soit ${fingerSets()} séries en ${c.holdLabel}, ${c.lest.toLowerCase()} — environ ${Math.ceil(fingerSets() * (SETUP + fingerWork() + fingerRest()) / 60)} min.<br>` +
         (phase() === '9-12'
             ? 'On raccourcit le travail : on cherche la qualité de suspension, pas le temps.'
             : 'Format classique : beaucoup de repos, une suspension impeccable par série.') +
@@ -792,7 +931,7 @@ function renderFinger() {
 
 function renderRings() {
     const c = cfg();
-    document.getElementById('ringsChip').textContent = ringsMinutes() + ' min';
+    document.getElementById('ringsChip').textContent = '≈ ' + ringsMinutes() + ' min';
     document.getElementById('ringsList').innerHTML = PLAN[4].items(c).map(it => `
         <div class="item">
             <div class="item-b">
@@ -802,7 +941,7 @@ function renderRings() {
                 <div class="item-n">${it.n}</div>
             </div>
         </div>`).join('');
-    resetRings();
+    if (!ringCtl) resetRings();
 }
 
 function syncGradeSelect() {
@@ -839,31 +978,106 @@ function finishDay() {
     buzz();
 }
 
+/* =================== PROFIL FAIBLE =================== */
+// Ne renvoie un point faible que si au moins deux profils ont 2 voies ou plus :
+// sinon on déclencherait une correction sur deux essais.
+function profileStats() {
+    const floor = GRADES.indexOf(cfg().cruise);
+    const by = {};
+    load('climbingRoutes', [])
+        .filter(r => GRADES.indexOf(r.grade) >= floor)
+        .slice(0, 30)
+        .forEach(r => { (by[r.profile] = by[r.profile] || []).push(r.status === 'flash'); });
+    return Object.keys(by)
+        .map(p => ({
+            p,
+            n: by[p].length,
+            f: Math.round(by[p].filter(Boolean).length / by[p].length * 100)
+        }))
+        .sort((a, b) => a.f - b.f);
+}
+
+function weakProfile() {
+    const s = profileStats().filter(x => x.n >= 2);
+    return s.length >= 2 ? s[0] : null;
+}
+
+function profileTable() {
+    const s = profileStats();
+    if (!s.length) return '<span style="color:var(--muted);font-size:.85rem">Trace des voies en notant le profil pour voir tes points forts.</span>';
+    return s.map(x => `<span class="pill">${x.p} <b>${x.f} %</b> · ${x.n} voies</span>`).join('');
+}
+
 /* =================== COACH =================== */
-function askCoach() {
-    const routes = load('climbingRoutes', []);
+// Uniquement les voies à la cotation cible, des 21 derniers jours, sur au moins 5 voies et 3 jours.
+function coachVerdict() {
     const c = cfg();
-    if (routes.length < 3) {
-        alert('Trace au moins 3 voies dans l\'onglet Mur et je te donne un avis.');
+    const since = Date.now() - 21 * 864e5;
+    const at = load('climbingRoutes', []).filter(r => r.grade === c.grade && new Date(r.date).getTime() >= since);
+    const days = new Set(at.map(r => r.date.slice(0, 10))).size;
+    if (at.length < 5 || days < 3) return { need: at.length, grade: c.grade };
+
+    const rate = at.filter(r => r.status === 'flash').length / at.length;
+    const base = { rate, n: at.length, days, grade: c.grade };
+    if (rate >= 0.7) return { ...base, up: true };
+    if (rate <= 0.2) return { ...base, down: true };
+    return { ...base, hold: true };
+}
+
+function renderCoach() {
+    const v = coachVerdict();
+    const pct = Math.round(v.rate * 100) + ' %';
+    const box = document.getElementById('coachVerdict');
+
+    if (v.need !== undefined) {
+        box.innerHTML = `<b>Pas encore d'avis.</b> Il me faut 5 voies à ${v.grade} sur 3 jours différents — tu en as ${v.need}.`;
         return;
     }
-    const recent = routes.slice(0, 10);
-    const flash = recent.filter(r => r.status === 'flash').length / recent.length;
-    const atGrade = recent.filter(r => r.grade === c.grade).length;
-    const pct = Math.round(flash * 100) + ' %';
-    let delta = 0;
-    let why;
-    if (flash >= 0.7 && atGrade >= 3) {
-        delta = 1;
-        why = pct + ' de flash et ' + atGrade + ' voies à ' + c.grade + ' : tu as de la marge, on monte.';
-    } else if (flash <= 0.15) {
-        delta = -1;
-        why = pct + ' de flash seulement : on redescend d\'un cran pour consolider avant d\'attaquer la suite.';
-    } else {
-        why = pct + ' de flash : on garde ' + c.grade + ' et on consolide avant de monter.';
-    }
-    if (delta) setLevel(level + delta);
-    alert('Coach : ' + why + (delta ? '\nNouveau niveau : ' + cfg().grade + '.' : ''));
+    let text;
+    if (v.up) text = `<b>${pct} de flash</b> sur ${v.n} voies à ${v.grade} (${v.days} jours). Tu as de la marge : on passe à ${GRADES[Math.min(GRADES.length - 1, GRADES.indexOf(v.grade) + 1)]}.`;
+    else if (v.down) text = `<b>${pct} de flash</b> sur ${v.n} voies à ${v.grade} (${v.days} jours). Ça ne passe pas : on redescend d'un cran et on consolide.`;
+    else text = `<b>${pct} de flash</b> sur ${v.n} voies à ${v.grade} (${v.days} jours). On garde le niveau, on consolide.`;
+    box.innerHTML = text + (v.up || v.down
+        ? `<button class="btn btn-primary btn-small" style="margin-top:10px" onclick="applyCoach(${v.up ? 1 : -1})">Appliquer</button>`
+        : '');
+}
+
+function applyCoach(delta) {
+    setLevel(level + delta);
+    document.getElementById('coachVerdict').innerHTML =
+        `<b>Niveau ${cfg().grade}.</b> Les nouvelles cotations sont déjà appliquées à tout le programme.`;
+}
+
+/* =================== FIN DE CYCLE =================== */
+function cycleRate() {
+    const since = startDate();
+    const at = load('climbingRoutes', []).filter(r => r.date.slice(0, 10) >= since);
+    if (!at.length) return null;
+    return { n: at.length, rate: at.filter(r => r.status === 'flash').length / at.length };
+}
+
+function renderCycle() {
+    const box = document.getElementById('cycleCard');
+    if (currentWeek < 12) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    const c = cycleRate();
+    const done = c ? Math.round(c.rate * 100) + ' % de flash sur ' + c.n + ' voies' : 'aucune voie tracée sur ce cycle';
+    box.innerHTML =
+        `<div class="card-head"><span class="card-title">🎓 Cycle de 12 semaines terminé</span></div>` +
+        `<p class="brief">${done}${c && c.rate >= 0.7 ? ' — tu as tenu le niveau, on passe au palier suivant.' : ' — on repart sur un nouveau cycle au même niveau pour consolider.'}</p>` +
+        `<div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-primary" onclick="newCycle(${c && c.rate >= 0.7 ? 1 : 0})">Nouveau cycle${c && c.rate >= 0.7 ? ' · monter' : ''}</button>
+            <button class="btn btn-dark" onclick="newCycle(0)">Rester à ${cfg().grade}</button>
+        </div>`;
+}
+
+function newCycle(bump) {
+    if (bump) level = Math.max(1, Math.min(9, level + 1));
+    store('climbingLevel', level);
+    store('climbingStart', iso(new Date()));
+    store('climbingWeekOffset', 0);
+    render();
+    go('today');
 }
 
 /* =================== JOURNAL DE VOIES =================== */
@@ -953,11 +1167,13 @@ function renderStats() {
     const routes = load('climbingRoutes', []);
     const sessions = load('climbingSessions', []);
     const c = cfg();
+    const cycle = routes.filter(r => r.date.slice(0,10) >= startDate());
 
     document.getElementById('stWeek').textContent = currentWeek;
     document.getElementById('stPhase').textContent = PHASES[phase()].name;
     document.getElementById('stRoutes').textContent = routes.length;
     document.getElementById('stSessions').textContent = sessions.length;
+    document.getElementById('stCycle').textContent = cycle.length;
 
     const atGrade = routes.filter(r => r.grade === c.grade);
     const rate = atGrade.length ? Math.round(atGrade.filter(r => r.status === 'flash').length / atGrade.length * 100) : 0;
@@ -967,6 +1183,8 @@ function renderStats() {
     const start = new Date(); start.setDate(start.getDate() - ((start.getDay() || 7) - 1));
     document.getElementById('stWeekSessions').textContent =
         sessions.filter(s => new Date(s.date) >= start).length;
+
+    document.getElementById('stProfiles').innerHTML = profileTable();
 
     renderHistory();
 }
@@ -985,55 +1203,99 @@ function tick(fn, ms) {
     return { stop() { clearTimeout(id); id = null; } };
 }
 
+const TONE = { lime: 'work', amber: 'rest', sky: 'ready' };
+
+// Une seule machine pour les deux séances : phases comptées (mise en place, repos)
+// et phases en attente de validation (les reps ne se minutent pas).
+function runSeq(seq, ids, onEnd) {
+    const el = k => document.getElementById(k);
+    let i = -1, left = 0, run = null;
+
+    const stopRun = () => { if (run) { run.stop(); run = null; } };
+    const paint = p => {
+        el(ids.phase).textContent = p.k === 'wait' ? p.t + ' — valide quand la série est faite' : p.t;
+        el(ids.val).className = 'val ' + TONE[p.tone];
+        el(ids.next).classList.toggle('hidden', p.k !== 'wait');
+        el(ids.bar).style.width = '0%';
+        if (p.float) showRest(); else hideRest();
+    };
+    const step = () => {
+        i++;
+        if (i >= seq.length) { stop(); onEnd(); return; }
+        const p = seq[i];
+        paint(p);
+        if (p.k === 'wait') { el(ids.val).textContent = '•••'; return; }
+        left = p.d;
+        el(ids.val).textContent = left;
+        run = tick(() => {
+            left--;
+            if (left <= 0) { stopRun(); buzz(); step(); return; }
+            el(ids.val).textContent = left;
+            el(ids.bar).style.width = Math.round((1 - left / p.d) * 100) + '%';
+        });
+    };
+    const stop = () => {
+        stopRun();
+        el(ids.start).disabled = false;
+        el(ids.next).classList.add('hidden');
+        el(ids.bar).style.width = '0%';
+        hideRest();
+    };
+
+    el(ids.start).disabled = true;
+    step();
+    return {
+        stop,
+        next() { if (seq[i] && seq[i].k === 'wait') { buzz(); step(); } }
+    };
+}
+
 function startFinger() {
-    if (fingerRun) return;
-    const work = fingerWork(), rest = fingerRest(), total = fingerSets();
-    let set = 1, on = true, left = work;
-    fingerRun = tick(() => {
-        left--;
-        if (left <= 0) {
-            if (on) { on = false; left = rest; buzz(); showRest(); }
-            else if (set >= total) {
-                stopFinger();
-                document.getElementById('fPhase').textContent = 'Séance terminée';
-                document.getElementById('fBar').style.width = '100%';
-                finishDay();
-                return;
-            } else { set++; on = true; left = work; buzz(); hideRest(); }
-        }
-        const el = document.getElementById('fTimer');
-        el.textContent = left;
-        el.className = 'val ' + (on ? 'work' : 'rest');
-        document.getElementById('fPhase').textContent = on ? 'Travail — série ' + set + '/' + total : 'Repos — série ' + set + '/' + total;
-        document.getElementById('fBar').style.width = Math.round((1 - left / (on ? work : rest)) * 100) + '%';
+    if (fingerCtl) return;
+    fingerCtl = runSeq(seqFinger(), { val:'fTimer', phase:'fPhase', bar:'fBar', start:'fStart', next:'fNext' }, () => {
+        fingerCtl = null;
+        document.getElementById('fPhase').textContent = 'Séance terminée';
+        logFinger();
+        if (currentDay === 1) finishDay();
+        renderToday();
     });
-    document.getElementById('fStart').disabled = true;
 }
 
 function stopFinger() {
-    if (fingerRun) { fingerRun.stop(); fingerRun = null; }
-    document.getElementById('fStart').disabled = false;
-    hideRest();
+    if (!fingerCtl) return;
+    fingerCtl.stop();
+    fingerCtl = null;
+    document.getElementById('fPhase').textContent = 'Stoppé';
 }
 
+function fingerNext() { if (fingerCtl) fingerCtl.next(); }
+
 function startRings() {
-    if (ringRun) return;
-    let left = ringMinutes();
-    document.getElementById('rTimer').textContent = fmt(left);
-    ringRun = tick(() => {
-        left--;
-        if (left <= 0) { stopRings(); buzz(); return; }
-        document.getElementById('rTimer').textContent = fmt(left);
+    if (ringCtl) return;
+    ringCtl = runSeq(seqRings(), { val:'rTimer', phase:'rPhase', bar:'rBar', start:'rStart', next:'rNext' }, () => {
+        ringCtl = null;
+        document.getElementById('rPhase').textContent = 'Séance terminée';
+        document.getElementById('rTimer').textContent = '✓';
+        if (currentDay === 5) finishDay();
+        renderToday();
     });
 }
 
-function stopRings() { if (ringRun) { ringRun.stop(); ringRun = null; } }
-function ringMinutes() { return ringsMinutes() * 60; }
+function ringsNext() { if (ringCtl) ringCtl.next(); }
+
+function stopRings() {
+    if (!ringCtl) return;
+    ringCtl.stop();
+    ringCtl = null;
+    document.getElementById('rPhase').textContent = 'Stoppé';
+}
+
 function resetRings() {
     stopRings();
     const el = document.getElementById('rTimer');
-    if (el) el.textContent = fmt(ringMinutes());
+    if (el) el.textContent = 'Prêt';
 }
+
 function fmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
 function showRest() {
@@ -1057,14 +1319,12 @@ function buzz() { if ('vibrate' in navigator) navigator.vibrate([180, 90, 180]);
 function esc(s) { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
 /* =================== DÉMARRAGE =================== */
-const savedWeek = parseInt(load('climbingWeek', 1), 10);
-currentWeek = savedWeek >= 1 && savedWeek <= 12 ? savedWeek : 1;
+if (!load('climbingStart', null)) store('climbingStart', iso(new Date()));
 const savedLevel = parseInt(load('climbingLevel', 5), 10);
 level = savedLevel >= 1 && savedLevel <= 9 ? savedLevel : 5;
 
 render();
 renderRoutes();
-renderStats();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));

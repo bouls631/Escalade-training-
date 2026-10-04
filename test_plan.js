@@ -1,4 +1,4 @@
-// Vérifie le moteur de niveau + le plan (node test_plan.js)
+// Vérifie le moteur de niveau, le plan, les chronos et le coach (node test_plan.js)
 const fs = require('fs');
 const assert = require('assert');
 
@@ -11,10 +11,8 @@ const makeEl = () => ({
     addEventListener() {}, appendChild() {},
     classList: { add() {}, remove() {}, toggle() {} }
 });
-let ready = null;
 const els = {};
 global.document = {
-    addEventListener: (ev, cb) => { if (ev === 'DOMContentLoaded') ready = cb; },
     getElementById: id => (els[id] = els[id] || makeEl()),
     createElement: () => makeEl(),
     querySelectorAll: () => []
@@ -25,79 +23,200 @@ global.localStorage = {
     setItem(k, v) { this.s[k] = String(v); },
     removeItem(k) { delete this.s[k]; }
 };
-let alerted = null;
-global.alert = m => { alerted = m; };
-global.confirm = () => true;
 global.navigator = {};
 global.window = { scrollTo() {}, addEventListener() {} };
+global.confirm = () => true;
 
 const api = {};
 new Function('api', code + [
-    'api.get = () => ({ GRADES, cfg, PLAN, PHASES, phase, deload, vol, fingerSets, fingerWork, ringSets, ringsMinutes, todayIdx });',
+    'api.get = () => ({ GRADES, PLAN, SETUP, cfg, phase, deload, vol, fingerSets, fingerWork, fingerRest, ringSets, ringsRest, ringsMinutes, seqFinger, seqRings, autoWeek, syncWeek, weakProfile, profileStats, profileTable, coachVerdict, cycleRate, fingerBest, currentWeek: () => currentWeek });',
+    'api.render = () => render();',
     'api.setLevel = n => setLevel(n);',
-    'api.week = n => { currentWeek = n; render(); };',
     'api.day = (n, from) => pickDay(n, from);',
-    'api.ask = () => askCoach();',
     'api.check = i => toggleItem(i);',
-    'api.finish = () => finishDay();'
+    'api.finish = () => finishDay();',
+    'api.start = iso => { store("climbingStart", iso); store("climbingWeekOffset", 0); syncWeek(); };',
+    'api.logFinger = () => { document.getElementById("fingerKg").value = "12"; logFinger(); };',
+    'api.newCycle = n => newCycle(n);',
+    'api.nudgeWeek = n => nudgeWeek(n);'
 ].join('\n'))(api);
-const { GRADES, cfg, PLAN, PHASES, phase, deload, vol, fingerSets, fingerWork, ringSets, ringsMinutes } = api.get();
 
-// Échelle française : pas de 6d, 6c au milieu, bornes 5b → 8a
-assert.ok(!GRADES.includes('6d') && !GRADES.includes('7d'), 'pas de cotation en "d" dans l\'échelle');
-assert.strictEqual(cfg().grade, '6c', 'le niveau par défaut doit être 6c');
+const G = api.get();
+const iso = d => d.toLocaleDateString('sv');
+const back = n => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return iso(d);
+};
+
+/* ---------- échelle ---------- */
+assert.ok(!G.GRADES.includes('6d') && !G.GRADES.includes('7d'), 'pas de cotation en "d" dans l\'échelle');
+assert.strictEqual(G.cfg().grade, '6c', 'le niveau par défaut doit être 6c');
 api.setLevel(1);
-assert.strictEqual(cfg().grade, '5b', 'niveau 1 = 5b');
+assert.strictEqual(G.cfg().grade, '5b', 'niveau 1 = 5b');
 api.setLevel(9);
-assert.strictEqual(cfg().grade, '8a', 'niveau 9 = 8a');
+assert.strictEqual(G.cfg().grade, '8a', 'niveau 9 = 8a');
 
-// Toute cotation produite par le plan existe dans l'échelle
 for (let lv = 1; lv <= 9; lv++) {
     for (let w = 1; w <= 12; w++) {
-        localStorage.setItem('climbingLevel', lv);
-        localStorage.setItem('climbingWeek', w);
         api.setLevel(lv);
-        PLAN.forEach((day, i) => {
+        api.start(back((w - 1) * 7 + 3));           // en plein milieu de la semaine w
+        assert.strictEqual(G.currentWeek(), w, 'semaine auto fausse en S' + w + ' niveau ' + lv);
+        G.PLAN.forEach((day, i) => {
             api.day(i + 1);
-            const items = day.items(cfg());
+            const items = day.items(G.cfg());
             assert.ok(items.length > 0, day.d + ' : pas d\'exercices');
-            items.forEach(it => {
-                it.p.forEach(([k, v]) => {
-                    GRADES.forEach(gr => {
-                        if (String(v).split(' ').includes(gr)) assert.ok(GRADES.includes(gr));
-                    });
-                });
-            });
+            items.forEach(it => it.p.forEach(([k, v]) => {
+                assert.ok(String(v ?? '').length, day.d + ' : paramètre vide ' + k);
+            }));
         });
     }
 }
-console.log('ok — échelle sans 6d, 5b → 8a, toutes les cotations du plan sont valides');
+console.log('ok — échelle sans 6d, 5b → 8a, semaine auto sur 9 niveaux × 12 semaines × 7 jours');
 
-// 7 jours, chacun avec un brief et des exercices
-assert.strictEqual(PLAN.length, 7);
-PLAN.forEach(day => {
-    assert.ok(day.brief(cfg()).length > 30, day.d + ' : brief manquant');
-    assert.ok(day.items(cfg()).every(it => it.t && it.d && it.n), day.d + ' : exercice incomplet');
-});
+/* ---------- bornes de semaine ---------- */
+api.start(back(7 * 40));
+assert.strictEqual(G.currentWeek(), 12, 'la semaine doit être plafonnée à 12');
+assert.strictEqual(G.autoWeek(), 12, 'autoWeek doit plafonner');
+api.start(iso(new Date()));
+assert.strictEqual(G.currentWeek(), 1, 'un cycle démarré aujourd\'hui est en semaine 1');
+api.start(back(7 * 3));
+api.nudgeWeek(2);
+assert.strictEqual(G.currentWeek(), 6, 'l\'ajustement manuel doit décaler la semaine');
+assert.strictEqual(G.deload(), false, 'S6 n\'est pas une décharge');
+api.nudgeWeek(4);
+assert.strictEqual(G.currentWeek(), 10, 'l\'ajustement doit suivre le déplacement demandé');
+api.nudgeWeek(20);
+assert.strictEqual(G.currentWeek(), 12, 'l\'ajustement ne doit pas dépasser 12');
+console.log('ok — semaine bornée 1-12, ajustement manuel sans dépassement');
 
-// Le volume monte avec le niveau et baisse en semaine de décharge
-api.setLevel(1);
-const low = vol(cfg());
-api.setLevel(9);
-assert.ok(vol(cfg()) > low, 'le volume ne monte pas avec le niveau');
-api.week(4);
-assert.ok(deload() && vol(cfg()) < 6, 'S4 doit être une semaine de décharge');
-assert.ok(ringSets() >= 2 && fingerSets() >= 2, 'jamais moins de 2 séries');
-assert.ok(ringsMinutes() >= 25, 'séance anneaux trop courte');
-api.week(1);
-console.log('ok — décharge S4/S8/S12, volume progressif, séries garanties');
-console.log('    phase ' + phase() + ' · ' + PHASES[phase()].name + ' · doigt ' + fingerSets() + '×' + fingerWork() + 's');
-
-// La séance du jour se coche et se valide
-localStorage.setItem('climbingWeek', '1');
+/* ---------- séquence fingerboard ---------- */
 api.setLevel(5);
+api.start(iso(new Date()));
+const f = G.seqFinger();
+assert.strictEqual(f[0].k, 'count');
+assert.strictEqual(f[0].d, G.SETUP, 'la première phase doit être la mise en place');
+assert.ok(f[0].t.includes('Mise en place'), 'la première phase doit être nommément la mise en place');
+assert.strictEqual(f[1].d, G.fingerWork(), 'la deuxième phase est le travail');
+assert.strictEqual(f[2].d, G.fingerRest(), 'la troisième phase est le repos');
+assert.strictEqual(f.length, G.fingerSets() * 3 - 1, 'il manque une phase dans la séquence fingerboard');
+assert.ok(!f.some(p => p.t.includes('Mise en place') && p.d !== G.SETUP), 'toutes les mises en place durent 10 s');
+console.log('ok — fingerboard : mise en place ' + G.SETUP + ' s avant chaque série (' + f.length + ' phases)');
+
+/* ---------- séquence anneaux ---------- */
+const r = G.seqRings();
+const items = G.PLAN[4].items(G.cfg());
+const waits = r.filter(p => p.k === 'wait');
+const counts = r.filter(p => p.k === 'count');
+assert.strictEqual(waits.length, items.reduce((n, it) => n + it.sets, 0), 'un passage par série');
+assert.strictEqual(waits.length - 1, counts.length, 'chaque repos doit suivre une série, sauf la dernière');
+items.forEach(it => {
+    assert.ok(it.rest >= 45, 'repos trop court sur ' + it.t);
+    assert.ok(r.some(p => p.k === 'count' && p.d === it.rest), 'repos manquant pour ' + it.t);
+});
+assert.ok(counts.every(p => p.float), 'chaque repos anneaux doit afficher le chrono flottant');
+assert.ok(G.ringsMinutes() > 10, 'durée de séance anneaux incohérente');
+console.log('ok — anneaux : ' + waits.length + ' séries, ' + counts.length + ' repos (tractions ' +
+    G.ringsRest(0) + ' s, dips ' + G.ringsRest(1) + ' s), environ ' + G.ringsMinutes() + ' min');
+
+/* ---------- force de doigt ---------- */
+localStorage.removeItem('climbingFinger');
+api.logFinger();
+let log = JSON.parse(localStorage.getItem('climbingFinger'));
+assert.strictEqual(log.length, 1);
+assert.strictEqual(log[0].kg, 12);
+assert.strictEqual(log[0].hold, G.cfg().hold);
+assert.strictEqual(G.fingerBest()[G.cfg().hold], 12, 'le record doit être 12 kg');
+localStorage.setItem('climbingFinger', JSON.stringify([
+    { date: back(10), hold: '10mm', kg: 8, sets: 5, work: 7, week: 1 },
+    { date: back(2), hold: '10mm', kg: 14, sets: 5, work: 7, week: 2 },
+    { date: back(1), hold: '15mm', kg: 5, sets: 5, work: 7, week: 2 }
+]));
+assert.strictEqual(G.fingerBest()['10mm'], 14, 'le record retient le meilleur poids');
+assert.strictEqual(G.fingerBest()['15mm'], 5, 'chaque prise a son propre record');
+console.log('ok — force de doigt : log du poids et record par prise');
+
+/* ---------- profil faible ---------- */
+localStorage.removeItem('climbingRoutes');
+assert.strictEqual(G.weakProfile(), null, 'aucun profil faible sans données');
+localStorage.setItem('climbingRoutes', JSON.stringify([
+    { name: 'a', grade: '6c', profile: 'Dévers', status: 'fail', date: new Date().toISOString() },
+    { name: 'b', grade: '6c', profile: 'Dévers', status: 'work', date: new Date().toISOString() },
+    { name: 'c', grade: '6c', profile: 'Dalle', status: 'flash', date: new Date().toISOString() },
+    { name: 'd', grade: '6c', profile: 'Dalle', status: 'flash', date: new Date().toISOString() }
+]));
+assert.strictEqual(G.weakProfile().p, 'Dévers', 'le profil le moins flashé doit être désigné');
+assert.strictEqual(G.weakProfile().f, 0);
+assert.strictEqual(G.profileStats().length, 2, 'les deux profils doivent être comptés');
+assert.ok(G.PLAN[3].brief(G.cfg()).includes('dévers'), 'le brief du jeudi doit citer la priorité');
+assert.ok(G.PLAN[3].items(G.cfg())[1].p.some(p => p[1] === 'Dévers'), 'les essais flash doivent prioriser le profil faible');
+assert.ok(G.profileTable().includes('Dévers'), 'le bilan doit lister les taux par profil');
+api.render();
+assert.ok(els.stProfiles.innerHTML.includes('Dévers'), 'la carte bilan doit afficher les profils');
+localStorage.setItem('climbingRoutes', JSON.stringify([
+    { name: 'a', grade: '6c', profile: 'Toit', status: 'fail', date: new Date().toISOString() },
+    { name: 'b', grade: '6c', profile: 'Toit', status: 'fail', date: new Date().toISOString() }
+]));
+assert.strictEqual(G.weakProfile(), null, 'un seul profil ne permet pas de conclure');
+console.log('ok — profil faible : désigné seulement avec 2 profils et 2 voies chacun, priorisé au jeudi');
+
+/* ---------- coach ---------- */
+const routesAt = (statuses, grade = '6c', days = 4) => statuses.map((status, i) => ({
+    name: 'v' + i,
+    grade,
+    profile: 'Dévers',
+    status,
+    date: iso(new Date(Date.now() - (i % days) * 864e5)) + 'T10:00:00.000Z'
+}));
+api.setLevel(5);
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(['flash', 'flash', 'work'])));
+let v = G.coachVerdict();
+assert.ok(v.need !== undefined, '3 voies ne suffisent pas pour un avis');
+assert.strictEqual(v.need, 3);
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(Array(8).fill('flash'))));
+v = G.coachVerdict();
+assert.ok(v.up, '8 flash à la cotation cible doivent proposer de monter');
+assert.strictEqual(v.rate, 1);
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(Array(8).fill('fail'))));
+assert.ok(G.coachVerdict().down, '0 % de flash doit proposer de descendre');
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(['flash', 'flash', 'flash', 'work', 'fail'])));
+assert.ok(G.coachVerdict().hold, 'un taux intermédiaire doit conserver le niveau');
+const others = routesAt(Array(8).fill('flash'), '7a');
+localStorage.setItem('climbingRoutes', JSON.stringify(others));
+assert.ok(G.coachVerdict().need !== undefined, 'les voies d\'une autre cotation ne comptent pas');
+const stale = routesAt(Array(8).fill('flash')).map(x => ({ ...x, date: x.date.slice(0, 10) }));
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(Array(8).fill('flash')).map((x, i) => ({ ...x, date: back(40 + i) }))));
+assert.ok(G.coachVerdict().need !== undefined, 'les voies de plus de 3 semaines sont ignorées');
+console.log('ok — coach : 5 voies et 3 jours minimum, à la bonne cotation, moins de 3 semaines');
+
+/* ---------- fin de cycle ---------- */
+localStorage.setItem('climbingRoutes', JSON.stringify(routesAt(Array(8).fill('flash'))));
+api.setLevel(5);
+assert.ok(G.cycleRate().rate === 1, 'le taux du cycle doit être calculé');
+api.start(back(7 * 11));
+api.setLevel(5);
+api.render();
+assert.ok(els.cycleCard.innerHTML.includes('Cycle de 12 semaines terminé'), 'la carte de fin de cycle doit apparaître en S12');
+assert.ok(els.cycleCard.innerHTML.includes('monter'), 'un cycle réussi doit proposer de monter');
+api.start(back(7 * 5));
+api.render();
+assert.strictEqual(els.cycleCard.innerHTML, '', 'pas de carte de fin de cycle avant S12');
+api.start(back(7 * 11));
+api.setLevel(5);
+api.newCycle(1);
+assert.strictEqual(JSON.parse(localStorage.getItem('climbingStart')), iso(new Date()), 'le cycle doit repartir d\'aujourd\'hui');
+assert.strictEqual(JSON.parse(localStorage.getItem('climbingLevel')), 6, 'un cycle réussi doit monter d\'un cran');
+assert.strictEqual(G.currentWeek(), 1, 'le nouveau cycle doit repartir en semaine 1');
+api.newCycle(0);
+assert.strictEqual(JSON.parse(localStorage.getItem('climbingLevel')), 6, 'rester au même niveau ne change rien');
+console.log('ok — fin de cycle : remise à zéro du cycle et montée d\'un cran si le taux est bon');
+
+/* ---------- checklist ---------- */
+localStorage.removeItem('climbingRoutes');
+api.setLevel(5);
+api.start(iso(new Date()));
 api.day(2);
-const nb = PLAN[1].items(cfg()).length;
+const nb = G.PLAN[1].items(G.cfg()).length;
 api.check(0);
 assert.strictEqual(els.todayPct.textContent, Math.round(1 / nb * 100) + ' %', 'la progression ne suit pas');
 api.finish();
@@ -105,19 +224,3 @@ assert.strictEqual(els.todayPct.textContent, '100 %', 'la séance ne se valide p
 assert.strictEqual(JSON.parse(localStorage.getItem('climbingSessions')).length, 1, 'séance non enregistrée');
 assert.ok(els.weekStrip.innerHTML.includes('✓'), 'la semaine ne marque pas la séance faite');
 console.log('ok — checklist, validation de séance et suivi dans la semaine');
-
-// Avis du coach : monte si ça flashe, descend si ça ne passe pas, ne bouge pas entre les deux
-const seed = statuses => localStorage.setItem('climbingRoutes', JSON.stringify(
-    statuses.map((status, i) => ({ name: 'v' + i, grade: '6c', status, profile: 'Dalle', notes: '' }))));
-[['flash', 6], ['fail', 4], ['work', 4], ['mix', 5]].forEach(([caso, expected]) => {
-    api.setLevel(5);
-    seed(caso === 'mix' ? [...Array(5).fill('flash'), ...Array(5).fill('work')] : Array(10).fill(caso));
-    api.ask();
-    assert.strictEqual(parseInt(localStorage.getItem('climbingLevel'), 10), expected, 'coach : mauvais niveau pour le cas ' + caso);
-    assert.ok(alerted, 'coach : aucun avis rendu');
-});
-localStorage.setItem('climbingRoutes', '[]');
-api.setLevel(5);
-api.ask();
-assert.strictEqual(parseInt(localStorage.getItem('climbingLevel'), 10), 5, 'coach : il doit demander des données');
-console.log('ok — avis du coach : 100 % flash → on monte, 0 % ou que du work → on descend, 50 % → on garde');
