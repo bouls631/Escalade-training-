@@ -7,15 +7,22 @@ const code = fs.readFileSync('index.html', 'utf8').match(/<script>([\s\S]*)<\/sc
 // Stub DOM minimal : le script n'écrit que dans des éléments
 const makeEl = () => ({
     textContent: '', innerHTML: '', value: '', className: '', disabled: false, dataset: {},
-    style: {}, closest: () => null, children: [],
-    addEventListener() {}, appendChild() {},
-    classList: { add() {}, remove() {}, toggle() {} }
+    style: {}, closest: () => null, children: [], parentNode: null, id: '',
+    addEventListener() {},
+    appendChild(c) { c.parentNode = this; this.children.push(c); },
+    classList: {
+        set: new Set(),
+        add(c) { this.set.add(c); }, remove(c) { this.set.delete(c); },
+        toggle(c, on) { on ? this.set.add(c) : this.set.delete(c); },
+        has(c) { return this.set.has(c); }
+    }
 });
 const els = {};
 global.document = {
-    getElementById: id => (els[id] = els[id] || makeEl()),
+    getElementById: id => (els[id] = els[id] || Object.assign(makeEl(), { id })),
     createElement: () => makeEl(),
-    querySelectorAll: () => []
+    querySelectorAll: () => [],
+    addEventListener() {}
 };
 global.localStorage = {
     s: {},
@@ -38,7 +45,12 @@ new Function('api', code + [
     'api.start = iso => { store("climbingStart", iso); store("climbingWeekOffset", 0); syncWeek(); };',
     'api.logFinger = () => { document.getElementById("fingerKg").value = "12"; logFinger(); };',
     'api.newCycle = n => newCycle(n);',
-    'api.nudgeWeek = n => nudgeWeek(n);'
+    'api.nudgeWeek = n => nudgeWeek(n);',
+    'api.toSec = t => toSec(t);',
+    'api.restAdj = n => { restLeft = 180; restAdj(n); };',
+    'api.paintRest = () => paintRest();',
+    'api.chrono = d => chronoFor(d);',
+    'api.tick = (fn, ms) => tick(fn, ms);'
 ].join('\n'))(api);
 
 const G = api.get();
@@ -108,8 +120,10 @@ const mur = G.PLAN.map((d, i) => ({ day: G.DAYS[i], kind: d.kind })).filter(x =>
 assert.deepStrictEqual(mur.map(x => x.day), ['Mardi', 'Jeudi'], 'les seules séances de salle doivent être mardi et jeudi');
 assert.strictEqual(G.PLAN.filter(d => d.kind === 'maison').length, 2, 'vendredi et samedi doivent être des séances à la maison');
 assert.ok(G.PLAN[5].name.includes('Endurance'), 'le samedi doit être de l\'endurance à la maison');
-assert.ok(!G.PLAN.some(d => d.name.includes('anneaux')), 'plus de séance aux anneaux');
-assert.ok(G.PLAN[4].items(G.cfg()).every(it => it.t.length && it.rest >= 45), 'chaque exercice maison doit être complet');
+const maison = G.PLAN[4].items(G.cfg());
+assert.ok(maison.every(it => !/barre|chaise/i.test(it.t + it.n)), 'la séance du vendredi ne doit dépendre ni d\'une barre ni d\'une chaise');
+assert.ok(maison.filter(it => /anneaux/i.test(it.t)).length >= 2, 'les anneaux doivent remplacer la barre et les dips sur chaise');
+assert.ok(maison.every(it => it.t.length && it.rest >= 45), 'chaque exercice maison doit être complet');
 api.setLevel(5);
 api.start(iso(new Date()));
 assert.ok(G.vol2(G.cfg()) < G.vol(G.cfg()), 'le jeudi doit être plus léger que le mardi');
@@ -238,3 +252,67 @@ assert.strictEqual(els.todayPct.textContent, '100 %', 'la séance ne se valide p
 assert.strictEqual(JSON.parse(localStorage.getItem('climbingSessions')).length, 1, 'séance non enregistrée');
 assert.ok(els.weekStrip.innerHTML.includes('✓'), 'la semaine ne marque pas la séance faite');
 console.log('ok — checklist, validation de séance et suivi dans la semaine');
+
+/* ---------- chrono sur tous les temps demandés ---------- */
+[['20 min', 1200], ['Repos 5 min', 300], ['3 min max', 180], ['7s', 7], ['8 h', 28800],
+ ['1,5 min', 90], ['Étirement 30 s', 30], ['3 × 15 s', 15]].forEach(([txt, s]) => {
+    assert.strictEqual(api.toSec(txt), s, 'temps mal lu : ' + txt);
+});
+[['6c', 'cotation'], ['15mm', 'taille de prise'], ['Repos', 'mot seul'],
+ ['90/90, cercles', 'exercices'], ['1 semaine de repos', 'texte'],
+ ['3 × 6', 'séries sans unité'], ['Voies', 'nombre de voies']].forEach(([txt, why]) => {
+    assert.strictEqual(api.toSec(txt), 0, why + ' ne doit pas démarrer un chrono : ' + txt);
+});
+
+let cliquables = 0;
+G.PLAN.forEach(day => day.items(G.cfg()).forEach(it => {
+    if (api.toSec(it.d) > 0) cliquables++;
+    it.p.forEach(([k, v]) => { if (api.toSec(v) > 0) cliquables++; });
+}));
+assert.ok(cliquables > 25, 'les durées du programme doivent être cliquables (' + cliquables + ')');
+
+api.restAdj(1);
+assert.strictEqual(els.restVal.textContent, '3:30', 'le chrono doit se rallonger');
+api.restAdj(-1);
+api.restAdj(-1);
+assert.strictEqual(els.restVal.textContent, '2:30', 'le chrono doit se raccourcir');
+console.log('ok — chrono : ' + cliquables + ' durées du programme lançables et modifiables');
+
+/* ---------- le chrono vit sur la page du jour ---------- */
+assert.strictEqual(api.chrono(1), 'finger', 'le lundi doit afficher le chrono doigts');
+assert.strictEqual(api.chrono(5), 'home', 'le vendredi doit afficher le chrono maison');
+[2, 3, 4, 6, 7].forEach(d => {
+    assert.strictEqual(api.chrono(d), null, 'aucun chrono le ' + G.DAYS[d - 1]);
+});
+assert.ok(G.seqFinger().length > 1 && G.seqHome().length > 1, 'les deux séquences doivent exister');
+
+const shown = id => !els[id].classList.has('hidden');
+api.day(1);
+assert.ok(shown('todayFinger') && shown('todayFingerLog') && !shown('todayHome'), 'le lundi montre le chrono doigts');
+api.day(5);
+assert.ok(shown('todayHome') && !shown('todayFinger'), 'le vendredi montre le chrono maison');
+api.day(3);
+assert.ok(!shown('todayFinger') && !shown('todayHome'), 'aucun chrono le mercredi');
+assert.strictEqual(els.vForce, undefined, 'l\'onglet Force doit être supprimé : tout est dans l\'onglet Auj.');
+console.log('ok — chronos et fingerboard sur la page du jour, onglet Force supprimé');
+
+/* ---------- un chrono arrêté ne doit jamais repartir ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+(async () => {
+    let fired = 0;
+    const ctl = api.tick(() => { fired++; if (fired === 1) ctl.stop(); }, 10);   // stop() depuis le callback
+    await sleep(150);
+    assert.strictEqual(fired, 1, 'un chrono arrêté depuis son callback se relance et compte 2× trop vite');
+
+    let n = 0;
+    const c2 = api.tick(() => n++, 10);
+    await sleep(150);
+    c2.stop();
+    const seen = n;
+    await sleep(80);
+    assert.strictEqual(n, seen, 'un chrono arrêté doit rester arrêté');
+
+    const phases = G.seqFinger().length;
+    assert.ok(phases > 1, 'la séquence doit avoir plusieurs phases');
+    console.log('ok — aucun décompte fantôme : une phase = une seconde');
+})().catch(e => { console.error(e); process.exit(1); });

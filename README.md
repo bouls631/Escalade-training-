@@ -6,14 +6,15 @@ Programme pensé pour **deux jours de salle par semaine (mardi et jeudi)** et ci
 
 ## Fonctionnalités
 
-- ◎ **Aujourd'hui** — la séance du jour, son brief de coach, la structure en checklist et un bouton de validation
-- 🗓️ **Semaine** — 7 jours : lundi force de doigts, **mardi salle**, mercredi récupération active, **jeudi salle**, vendredi force à la maison, samedi endurance et mobilité, dimanche repos
+- ◎ **Aujourd'hui** — la séance du jour, son brief de coach, la checklist à cocher, le bouton de validation, et le chrono de la séance quand il y en a un : doigts le lundi (avec le poids utilisé, la prescription et tes records par prise), renfo le vendredi. Tout est sur cette page, pas d'onglet Force
+- 🗓️ **Semaine** — 7 jours : lundi force de doigts, **mardi salle**, mercredi récupération active, **jeudi salle**, vendredi force à la maison (anneaux), samedi endurance et mobilité, dimanche repos
 - 📆 **Semaine calculée** — elle avance toute seule depuis la date de lancement du cycle (décharges S4/S8/S12 comprises), avec un ajustement manuel ± si tu as manqué des semaines
 - 🎯 **Niveau réglable** — un curseur qui pilote tout : cotations, volume de voies, essais par voie, prise du fingerboard, lest, séries de la séance maison
 - 🧠 **Coach** — avis calculé sur tes voies à la cotation cible (au moins 5 voies, 3 jours différents, moins de 3 semaines) : il propose de monter ou de descendre d'un cran, avec un bouton « Appliquer »
 - 📉 **Profil faible** — taux de flash par profil (dévers, dalle, verticale, toit) calculé depuis le journal ; le profil le plus faible devient la priorité du jeudi
 - 🖐️ **Chrono doigts** — mise en place 10 s, travail, repos, enchaînés automatiquement sur toutes les séries ; le poids réellement utilisé est noté et ton record par prise s'affiche
-- 🏠 **Chrono maison** — séquence scriptée du vendredi : le chrono attend ta validation sur chaque série puis décompte le repos (tractions 2:00, pompes 1:30, dips 1:30, gainage 0:45) avant de passer à l'exercice suivant
+- 🏠 **Chrono maison** — séquence scriptée du vendredi aux anneaux : le chrono attend ta validation sur chaque série puis décompte le repos (tractions anneaux 2:00, pompes 1:30, dips anneaux 1:30, gainage 0:45) avant de passer à l'exercice suivant. Aucune barre, aucune chaise
+- ⏱️ **Chrono à la demande** — n'importe quelle durée écrite dans le programme (`20 min`, `Repos 5 min`, `7s`) est cliquable : elle ouvre le chrono flottant, déjà chargé, que tu ajustes au pas de 30 s / 10 s / 5 s avant de le lancer
 - 🎓 **Fin de cycle** — à la 12e semaine, bilan du cycle et nouveau palier en un clic
 - ▲ **Mur** — journal de voies (cotation, profil, flash/work/chute, note) et note de séance
 - ◔ **Bilan** — progression, taux de flash sur la cotation cible, taux par profil, voies du cycle, historique, alertes santé des doigts

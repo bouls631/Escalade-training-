@@ -104,15 +104,6 @@ h1,h2,h3{font-weight:700;letter-spacing:-.01em}
 .btn:disabled{opacity:.45;cursor:default}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
 
-/* ---------- Segments ---------- */
-.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px}
-.seg button{
-    flex:1;border:0;background:transparent;color:var(--muted);
-    font:inherit;font-weight:700;font-size:.82rem;
-    padding:9px 4px;border-radius:999px;cursor:pointer;
-}
-.seg button.on{background:var(--surface-2);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
-
 /* ---------- Niveau ---------- */
 .lvl{display:flex;align-items:center;gap:12px;margin-top:4px}
 .lvl input[type=range]{flex:1;appearance:none;height:30px;background:transparent;cursor:pointer}
@@ -248,11 +239,16 @@ textarea{min-height:78px;resize:vertical}
 /* ---------- Repos flottant ---------- */
 .rest{
     position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:60;
-    min-width:62px;height:62px;padding:0 14px;border-radius:999px;
+    display:flex;align-items:center;
+    padding:0 4px;border-radius:999px;
     background:var(--surface-2);border:2px solid var(--amber);color:var(--amber);
     font-weight:800;font-variant-numeric:tabular-nums;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
+.rest.run{border-color:var(--lime);color:var(--lime)}
+.rest #restVal{min-width:62px;height:58px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem}
+.rbtn{width:28px;height:58px;border:0;background:none;color:inherit;font:inherit;font-size:1.2rem;cursor:pointer;opacity:.65}
+/* Durées cliquables : tout temps du programme ouvre le chrono */
+.tm{border-bottom:1px dashed currentColor;cursor:pointer}
 .hidden{display:none !important}
 @media (max-width:380px){ .timer .val{font-size:3rem} }
 </style>
@@ -284,6 +280,61 @@ textarea{min-height:78px;resize:vertical}
         <p class="brief" id="todayBrief"></p>
         <div class="list" id="todayList" style="margin-top:12px"></div>
         <button class="btn btn-primary btn-block" id="todayDone" style="margin-top:12px" onclick="finishDay()">Séance terminée</button>
+    </div>
+
+    <!-- Les deux chronos restent ici : seule la carte du jour concerned est affichée -->
+    <div class="card hidden" id="todayFinger">
+        <div class="card-head">
+            <span class="card-title">Chrono · Force de doigts</span>
+            <span class="spacer"></span>
+            <span class="chip on" id="fingerChip">15mm</span>
+        </div>
+        <div class="grid-m">
+            <div class="stat"><div class="v" id="pSets">5</div><div class="l">Séries</div></div>
+            <div class="stat"><div class="v" id="pWork">7s</div><div class="l">Travail</div></div>
+            <div class="stat"><div class="v" id="pRest">53s</div><div class="l">Repos</div></div>
+            <div class="stat"><div class="v" id="pSetup">10s</div><div class="l">Mise en place</div></div>
+        </div>
+        <div class="timer" style="margin-top:12px">
+            <div class="val ready" id="fTimer">10</div>
+            <div class="ph" id="fPhase">Prêt</div>
+            <div class="bar"><i id="fBar"></i></div>
+            <div class="btn-row" style="justify-content:center">
+                <button class="btn btn-primary" id="fStart" onclick="startFinger()">Démarrer</button>
+                <button class="btn btn-dark" onclick="stopFinger()">Stop</button>
+                <button class="btn btn-primary hidden" id="fNext" onclick="fingerNext()">Série faite ▶</button>
+            </div>
+        </div>
+        <input type="number" id="fingerKg" min="0" step="0.5" placeholder="Poids utilisé en kg (0 = poids du corps)" style="margin-top:12px">
+    </div>
+
+    <div id="todayFingerLog" class="hidden">
+        <div class="card">
+            <div class="card-head"><span class="card-title">Prescription</span></div>
+            <p class="brief" id="fingerText"></p>
+        </div>
+        <div class="card">
+            <div class="card-head"><span class="card-title">Progression force de doigt</span></div>
+            <div id="fingerLog"></div>
+        </div>
+    </div>
+
+    <div class="card hidden" id="todayHome">
+        <div class="card-head">
+            <span class="card-title">Chrono · Force à la maison</span>
+            <span class="spacer"></span>
+            <span class="chip" id="homeChip">30 min</span>
+        </div>
+        <div class="timer" style="margin-top:12px">
+            <div class="val ready" id="hTimer">Prêt</div>
+            <div class="ph" id="hPhase">Le chrono attend que tu valides chaque série, puis décompte le repos</div>
+            <div class="bar"><i id="hBar"></i></div>
+            <div class="btn-row" style="justify-content:center">
+                <button class="btn btn-primary" id="hStart" onclick="startHome()">Démarrer</button>
+                <button class="btn btn-dark" onclick="stopHome()">Stop</button>
+                <button class="btn btn-primary hidden" id="hNext" onclick="homeNext()">Série faite ▶</button>
+            </div>
+        </div>
     </div>
 
     <div class="card">
@@ -371,70 +422,6 @@ textarea{min-height:78px;resize:vertical}
     </div>
 </section>
 
-<!-- ================= FORCE ================= -->
-<section id="v-force" class="hidden">
-    <div class="seg" style="margin:14px 0 2px">
-        <button class="on" data-f="finger" onclick="setForce('finger')">🖐️ Doigts</button>
-        <button data-f="home" onclick="setForce('home')">🏠 Maison</button>
-    </div>
-
-    <div id="force-finger">
-        <div class="card">
-            <div class="card-head">
-                <span class="card-title">Protocole</span>
-                <span class="spacer"></span>
-                <span class="chip on" id="fingerChip">15mm</span>
-            </div>
-            <div class="grid-m">
-                <div class="stat"><div class="v" id="pSets">5</div><div class="l">Séries</div></div>
-                <div class="stat"><div class="v" id="pWork">7s</div><div class="l">Travail</div></div>
-                <div class="stat"><div class="v" id="pRest">53s</div><div class="l">Repos</div></div>
-                <div class="stat"><div class="v" id="pSetup">10s</div><div class="l">Mise en place</div></div>
-            </div>
-            <div class="timer" style="margin-top:12px">
-                <div class="val ready" id="fTimer">10</div>
-                <div class="ph" id="fPhase">Prêt</div>
-                <div class="bar"><i id="fBar"></i></div>
-                <div class="btn-row" style="justify-content:center">
-                    <button class="btn btn-primary" id="fStart" onclick="startFinger()">Démarrer</button>
-                    <button class="btn btn-dark" onclick="stopFinger()">Stop</button>
-                    <button class="btn btn-primary hidden" id="fNext" onclick="fingerNext()">Série faite ▶</button>
-                </div>
-            </div>
-            <input type="number" id="fingerKg" min="0" step="0.5" placeholder="Poids utilisé en kg (0 = poids du corps)" style="margin-top:12px">
-        </div>
-        <div class="card">
-            <div class="card-head"><span class="card-title">Prescription</span></div>
-            <p class="brief" id="fingerText"></p>
-        </div>
-        <div class="card">
-            <div class="card-head"><span class="card-title">Progression force de doigt</span></div>
-            <div id="fingerLog"></div>
-        </div>
-    </div>
-
-    <div id="force-home" class="hidden">
-        <div class="card">
-            <div class="card-head">
-                <span class="card-title">Force à la maison</span>
-                <span class="spacer"></span>
-                <span class="chip" id="homeChip">30 min</span>
-            </div>
-            <div class="list" id="homeList"></div>
-            <div class="timer" style="margin-top:12px">
-                <div class="val ready" id="hTimer">Prêt</div>
-                <div class="ph" id="hPhase">Le chrono attend que tu valides chaque série, puis décompte le repos</div>
-                <div class="bar"><i id="hBar"></i></div>
-                <div class="btn-row" style="justify-content:center">
-                    <button class="btn btn-primary" id="hStart" onclick="startHome()">Démarrer</button>
-                    <button class="btn btn-dark" onclick="stopHome()">Stop</button>
-                    <button class="btn btn-primary hidden" id="hNext" onclick="homeNext()">Série faite ▶</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- ================= BILAN ================= -->
 <section id="v-stats" class="hidden">
     <div class="card">
@@ -480,13 +467,16 @@ textarea{min-height:78px;resize:vertical}
     </div>
 </section>
 
-<div class="rest hidden" id="restTimer" onclick="toggleRest()"><span id="restVal">3:00</span></div>
+<div class="rest hidden" id="restTimer">
+    <button class="rbtn" onclick="restAdj(-1)" aria-label="Moins de temps">−</button>
+    <span id="restVal" onclick="toggleRest()" title="Lancer / mettre en pause">3:00</span>
+    <button class="rbtn" onclick="restAdj(1)" aria-label="Plus de temps">+</button>
+</div>
 
 <nav class="tabbar">
     <button class="on" data-v="today" onclick="go('today')"><b>☀️</b>Auj.</button>
     <button data-v="week" onclick="go('week')"><b>🗓️</b>Semaine</button>
     <button data-v="wall" onclick="go('wall')"><b>🏔️</b>Mur</button>
-    <button data-v="force" onclick="go('force')"><b>💪</b>Force</button>
     <button data-v="stats" onclick="go('stats')"><b>📊</b>Bilan</button>
 </nav>
 
@@ -496,7 +486,6 @@ let view = 'today';
 let level = 5;          // 1..9, 5 = 6c
 let currentWeek = 1;
 let currentDay = new Date().getDay() || 7;
-let forceTab = 'finger';
 let fingerCtl = null, homeCtl = null, restRun = null;
 let restLeft = 180;
 
@@ -588,7 +577,7 @@ function fingerRest() { return phase() === '9-12' ? 55 : 53; }
 
 const PLAN = [
     {
-        d: 'Lun', icon: '🖐️', name: 'Force de doigts', kind: 'force', view: 'force',
+        d: 'Lun', icon: '🖐️', name: 'Force de doigts', kind: 'force',
         brief: c => `Les doigts récupèrent en 48 h : on construit la force aujourd'hui pour l'exploiter sur le mur mardi et jeudi. Objectif ${c.grade} : ${c.holdLabel.toLowerCase()}, ${c.lest.toLowerCase()}.`,
         items: c => [
             { t: 'Mise en route des doigts', d: '10 min', p: [['Séries','2'],['Travail','5s'],['Repos','55s']],
@@ -648,18 +637,18 @@ const PLAN = [
         }
     },
     {
-        d: 'Ven', icon: '🏠', name: 'Force à la maison', kind: 'maison', view: 'force',
-        brief: () => `Pas de salle le vendredi : on construit le corps en dehors du mur — traction, push et gainage. ${homeSets()} séries par exercice, le chrono enchaîne les repos tout seul.`,
+        d: 'Ven', icon: '🏠', name: 'Force à la maison', kind: 'maison',
+        brief: () => `Pas de salle le vendredi : on construit le corps en dehors du mur — anneaux, pompes et gainage. ${homeSets()} séries par exercice, le chrono enchaîne les repos tout seul.`,
         items: () => [
-            { t: 'Tractions (barre)', d: '12 min', sets: homeSets(), reps: 6, rest: homeRest(0),
+            { t: 'Tractions aux anneaux', d: '12 min', sets: homeSets(), reps: 6, rest: homeRest(0),
               p: [['Séries', homePull()],['Repos', fmt(homeRest(0))]],
-              n: 'Descente lente sur 3 secondes, pas de balancement. Avec une barre, ajoute des charges quand toutes les reps sont propres.' },
+              n: 'Descente lente sur 3 secondes, pas de balancement. Sur anneaux c\'est plus dur qu\'ailleurs : 6 reps propres suffisent, corps incliné vers l\'avant ou pieds en l\'air pour alléger. Dès que la suspension se casse, on repasse à 4.' },
             { t: 'Pompes', d: '8 min', sets: homeSets(), reps: 12, rest: homeRest(1),
               p: [['Séries', homePush()],['Repos', fmt(homeRest(1))],['Poignets', 'Neutres']],
               n: 'Corps en ligne, coudes à 45 degrés, amplitude complète. Si c\'est facile, ralentis la descente sur 3 secondes.' },
-            { t: 'Dips sur chaise', d: '6 min', sets: homeSets(), reps: 8, rest: homeRest(2),
+            { t: 'Dips aux anneaux', d: '6 min', sets: homeSets(), reps: 6, rest: homeRest(2),
               p: [['Séries', homeDip()],['Repos', fmt(homeRest(2))],['Coudes', 'Près du corps']],
-              n: "Mains en arrière sur une chaise, jambes tendues. Trop dur : plie les genoux pour t'aider." },
+              n: "Bras tendus, épaules basses, on ne descend pas sous 90° si la NUQUE craque. Trop dur : 3 reps par série, ou pieds au sol pour pousser." },
             { t: 'Gainage', d: '5 min', sets: deload() ? 2 : 3, reps: 30, rest: homeRest(3),
               p: [['Séries', homeCore()],['Repos', fmt(homeRest(3))],['Exercice', 'Hollow body']],
               n: 'Gainage profond, pas juste des abdos. C\'est la tension corporelle qui te fait tenir en dévers.' }
@@ -691,10 +680,10 @@ const PLAN = [
 
 function homePull() { return homeSets() + ' × 6'; }
 function homePush() { return homeSets() + ' × 12'; }
-function homeDip() { return homeSets() + ' × 8'; }
+function homeDip() { return homeSets() + ' × 6'; }
 function homeCore() { return deload() ? '2 × 30 s' : '3 × 30 s'; }
 function homeSets() { return Math.max(2, cfg().strengthSets - (deload() ? 1 : 0)); }
-const HOME_REST = [120, 90, 90, 45];        // tractions, pompes, dips, gainage
+const HOME_REST = [120, 90, 90, 45];        // tractions, pompes, dips anneaux, gainage
 const HOME_WORK = [25, 25, 20, 30];
 function homeRest(n) { return HOME_REST[n] + Math.max(0, cfg().d) * (n === 0 ? 15 : 5); }
 function homeMinutes() {
@@ -788,19 +777,26 @@ function load(k, fallback) {
 /* =================== NAVIGATION =================== */
 function go(v) {
     view = v;
-    ['today','week','wall','force','stats'].forEach(name => {
+    ['today','week','wall','stats'].forEach(name => {
         document.getElementById('v-' + name).classList.toggle('hidden', name !== v);
     });
     document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
     window.scrollTo({ top: 0 });
 }
 
-function setForce(f) {
-    forceTab = f;
-    document.getElementById('force-finger').classList.toggle('hidden', f !== 'finger');
-    document.getElementById('force-home').classList.toggle('hidden', f !== 'home');
-    document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === f));
-    if (f === 'home') resetHome();
+/* Les deux cartes chrono sont sur la page du jour : on affiche celle qui correspond à la
+   séance, pas son jour. Doigts = fingerboard, exercices minutés = séquence maison. */
+function chronoFor(day) {
+    const d = PLAN[(day || currentDay) - 1];
+    if (!d) return null;
+    if (d.kind === 'force') return 'finger';
+    return d.items(cfg()).some(it => it.sets) ? 'home' : null;
+}
+function placeTimer() {
+    const c = chronoFor();
+    document.getElementById('todayFinger').classList.toggle('hidden', c !== 'finger');
+    document.getElementById('todayFingerLog').classList.toggle('hidden', c !== 'finger');
+    document.getElementById('todayHome').classList.toggle('hidden', c !== 'home');
 }
 
 /* =================== RENDU =================== */
@@ -833,6 +829,7 @@ function render() {
     renderFingerLog();
     renderStats();
     syncGradeSelect();
+    markTimes();
 }
 
 function renderToday() {
@@ -852,6 +849,7 @@ function renderToday() {
     const pct = items.length ? Math.round(done.length / items.length * 100) : 0;
     document.getElementById('todayPct').textContent = pct + ' %';
     document.getElementById('todayDone').textContent = pct === 100 ? 'Séance terminée ✓' : 'Marquer la séance terminée';
+    placeTimer();
 }
 
 function listHtml(items, done) {
@@ -932,17 +930,7 @@ function renderFinger() {
 }
 
 function renderHome() {
-    const c = cfg();
     document.getElementById('homeChip').textContent = '≈ ' + homeMinutes() + ' min';
-    document.getElementById('homeList').innerHTML = PLAN[4].items(c).map(it => `
-        <div class="item">
-            <div class="item-b">
-                <div class="item-t">${it.t}</div>
-                <div class="item-d">${it.d}</div>
-                <div class="item-p">${it.p.map(p => `<span class="pill">${p[0]} <b>${p[1]}</b></span>`).join('')}</div>
-                <div class="item-n">${it.n}</div>
-            </div>
-        </div>`).join('');
     if (!homeCtl) resetHome();
 }
 
@@ -1192,17 +1180,21 @@ function renderStats() {
 }
 
 /* =================== CHRONOS =================== */
+// dead : un stop() appelé depuis le callback lui-même doit empêcher le redémarrage,
+// sinon chaque phase laisse une boucle fantôme qui décompte en parallèle (2× trop vite).
 function tick(fn, ms) {
     ms = ms || 1000;
-    let next = Date.now() + ms;
-    let id = setTimeout(step, ms);
+    let next = Date.now() + ms, id = null, dead = false;
     function step() {
         const drift = Date.now() - next;
+        if (dead) return;
         fn();
+        if (dead) return;
         next += ms;
         id = setTimeout(step, Math.max(0, ms - drift));
     }
-    return { stop() { clearTimeout(id); id = null; } };
+    id = setTimeout(step, ms);
+    return { stop() { dead = true; clearTimeout(id); id = null; } };
 }
 
 const TONE = { lime: 'work', amber: 'rest', sky: 'ready' };
@@ -1219,7 +1211,7 @@ function runSeq(seq, ids, onEnd) {
         el(ids.val).className = 'val ' + TONE[p.tone];
         el(ids.next).classList.toggle('hidden', p.k !== 'wait');
         el(ids.bar).style.width = '0%';
-        if (p.float) showRest(); else hideRest();
+        if (p.float) startRest(p.d); else hideRest();
     };
     const step = () => {
         i++;
@@ -1300,23 +1292,50 @@ function resetHome() {
 
 function fmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
-function showRest() {
+// Un temps écrit dans le programme ('20 min', 'Repos 5 min', '7s') est cliquable :
+// il ouvre le chrono flottant, déjà chargé etmodifiable, et le lance.
+const DUR = /(\d+(?:[.,]\d+)?)\s*(h|min|s)(?![a-z])/i;
+function toSec(text) {
+    const m = DUR.exec(String(text || ''));
+    if (!m) return 0;
+    const u = m[2].toLowerCase();
+    return Math.round(parseFloat(m[1].replace(',', '.')) * (u === 'h' ? 3600 : u === 'min' ? 60 : 1));
+}
+
+function startRest(sec) {
+    stopRest();
     const el = document.getElementById('restTimer');
     el.classList.remove('hidden');
-    restLeft = 180;
+    el.classList.add('run');
+    restLeft = Math.max(1, Math.round(sec) || 180);
     paintRest();
-    if (restRun) restRun.stop();
     restRun = tick(() => { restLeft--; paintRest(); if (restLeft <= 0) { stopRest(); buzz(); } });
 }
-function stopRest() { if (restRun) { restRun.stop(); restRun = null; } }
+function restAdj(n) {
+    const step = restLeft >= 120 ? 30 : restLeft >= 60 ? 10 : 5;
+    restLeft = Math.max(5, restLeft + n * step);
+    paintRest();
+}
+function stopRest() { if (restRun) { restRun.stop(); restRun = null; } document.getElementById('restTimer').classList.remove('run'); }
 function hideRest() { stopRest(); document.getElementById('restTimer').classList.add('hidden'); }
 function paintRest() { document.getElementById('restVal').textContent = fmt(restLeft); }
 function toggleRest() {
     if (restRun) { stopRest(); return; }
-    if (restLeft <= 0) restLeft = 180;
+    if (restLeft <= 0) { restLeft = 180; }
+    document.getElementById('restTimer').classList.add('run');
     paintRest();
     restRun = tick(() => { restLeft--; paintRest(); if (restLeft <= 0) { stopRest(); buzz(); } });
 }
+function markTimes() {
+    document.querySelectorAll('.item-d,.pill b,.stat .v,.chip').forEach(el => {
+        if (toSec(el.textContent) > 0) el.classList.add('tm');
+    });
+}
+document.addEventListener('click', e => {
+    if (!e.target || e.target.closest('#restTimer')) return;
+    const s = toSec(e.target.textContent);
+    if (s > 0) startRest(s);
+});
 function buzz() { if ('vibrate' in navigator) navigator.vibrate([180, 90, 180]); }
 function esc(s) { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
